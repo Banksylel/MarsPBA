@@ -10,6 +10,7 @@
 #
 #   UPDATE
 #   1.00      08/11/2020    Chris Jennings    Initial Version
+#   1.01      08/11/2020    Brian Nyathi      + Balancing of dataset
 # *************************************************************
 
 #  clears all objects in "global environment"
@@ -76,14 +77,14 @@ main<-function(){
   
   #*************************************************
   #Return all rows that have churned. There are 1869 rows
-  y <-churn[churn$Churn == "Yes", ]
+  y <-telco[telco$Churn == "Yes", ]
   #Return rows that not churned.
-  n <- churn[churn$Churn == "No", ]
+  n <- telco[telco$Churn == "No", ]
   #Shuffle these rows and select 1869 rows.
   set.seed(42)
   n_shuffled <- n[sample(1:nrow(n)), ]
   n_final <- n_shuffled[1:1869, ]  
-  #Return balanced dataset
+  #Return balanced and shuffled dataset
   yandn <- rbind(y, n_final)
   telco <- yandn[sample(1:nrow(yandn)), ]
   
