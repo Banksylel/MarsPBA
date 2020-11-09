@@ -74,6 +74,19 @@ main<-function(){
   # Read data from file
   telco<-NreadDataset(DATASET_FILENAME)
   
+  #*************************************************
+  #Return all rows that have churned. There are 1869 rows
+  y <-churn[churn$Churn == "Yes", ]
+  #Return rows that not churned.
+  n <- churn[churn$Churn == "No", ]
+  #Shuffle these rows and select 1869 rows.
+  set.seed(42)
+  n_shuffled <- n[sample(1:nrow(n)), ]
+  n_final <- n_shuffled[1:1869, ]  
+  #Return balanced dataset
+  yandn <- rbind(y, n_final)
+  telco <- yandn[sample(1:nrow(yandn)), ]
+  
   # ************************************************
   # Remove customerID field because it is irrelevant
   telco<-subset(telco, select = -customerID)
