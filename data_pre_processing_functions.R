@@ -10,6 +10,7 @@
 #
 #   UPDATE
 #   1.00      08/11/2020    Chris Jennings    Initial Version
+#   1.10      09/11/2020    Ryan Banks        Added PREPROCESSING_stratDataset, PREPROCESSING_trainTestSplit, PREPROCESSING_stratSplit, and  PREPROCESSING_FoldID functions 
 # # ***********************************************************
 
 # ************************************************
@@ -36,7 +37,7 @@ PREPROCESSING_one_hot_special<-function(dataset){
                                      "InternetService_StreamingMovies" = "No",
                                      "PaymentMethod_Automatic" = "No"))
   
-
+  
   # Customers with phone service have PhoneService_SingleLine=1 xor PhoneService_MultipleLines=1.
   # Both fields set to zero when customer has no phone service.
   dataset[which(dataset$PhoneService=="Yes"),"PhoneService_SingleLine"]<-"Yes"
@@ -80,3 +81,108 @@ PREPROCESSING_one_hot_special<-function(dataset){
   return (dataset)
 }
 
+
+
+
+# ************************************************
+# PREPROCESSING_splitDataset() :
+#
+# A function that randomizes the dataset and splits it into train and test using k fold cross validation
+#
+# INPUT: data Frame - dataset
+#
+# OUTPUT : data Frame - Encoded dataset
+# ************************************************
+PREPROCESSING_stratDataset <- function(dataset, KFOLDS){
+  
+  
+  classOutput=which(names(dataset)==OUTPUT_FIELD)               
+  classes <- unique(dataset[,classOutput])                                      #this gets the unique class values
+  #this Splits the dataset into 2 classes to keep the class balance the same as in the dataset
+  indexClass1<-which(dataset[,classOutput]==classes[1])
+  split1 <- dataset[indexClass1,]
+  split2 <- dataset[-indexClass1,]
+  #this calls the PREPROCESSING_FoldID function below
+  split1 <- PREPROCESSING_FoldID(split1, KFOLDS)
+  split2 <- PREPROCESSING_FoldID(split2, KFOLDS)
+  
+  newDataset <- rbind(split1,split2)                                            #this Combines the two datasets
+  newDataset <- newDataset[order(runif(nrow(newDataset))),]                     #this randomises the classes
+  
+  return(newDataset)
+  
+}
+
+
+# ************************************************
+# PREPROCESSING_FoldID() :
+#
+# adds a column called "foldID" to the dataset that indicates the fold number
+#
+# INPUT   :   data frame         - dataset        - dataset
+#
+# OUTPUT  :   data frame         - dataset        - dataset with foldID added
+#
+# ************************************************
+PREPROCESSING_FoldID <- function(dataset, KFOLDS){
+  
+  kRecords <- ceiling(nrow(dataset)/KFOLDS)                                       #this devides the number of rows in the dataset by the pre dertermined kFold number, then rounds up to the nearest int
+  foldIds <- rep(seq(1:KFOLDS),kRecords)                                          #this creates an Id numbers for each k fold for the size of the records that appear in each fold
+  foldIds <- foldIds[1:nrow(dataset)]                                             #this cuts foldIds so it will fit into the dataset dataframe, incase the rounding earier made it too large
+  dataset$foldId<-foldIds                                                       #This assignes the fold column to the dataset
+  
+  return(dataset)
+  
+  
+}
+
+
+# ************************************************
+# PREPROCESSING_stratSplit() :
+#
+# Generate the TRAIN and TEST dataset based on the current fold
+#
+# INPUT   :   data frame         - dataset        - dataset
+#
+# OUTPUT  :   list               - train & test datasets
+# ************************************************
+PREPROCESSING_stratSplit <- function(dataset, kfold){
+  
+  test<-subset(dataset, subset= foldId==kfold, select=-foldId)
+  train<-subset(dataset, subset= foldId!=kfold,select=-foldId)
+  
+  return(list(
+    train=train,
+    test=test))
+}
+
+
+# ************************************************
+# PREPROCESSING_trainTestSplit() :
+#
+#
+# INPUT   :   data frame         - dataset        - dataset
+#             object function    - model            - name of function
+#             ...                - optional        - parameters are passed on
+#
+# OUTPUT  :   data frame         - dataset        - dataset with foldID added
+#
+# ************************************************
+PREPROCESSING_trainTestSplit <- function(dataset, model, ...){
+  allResults<-data.frame()
+  
+  for (k in 1:KFOLDS){
+    
+    splitData <- PREPROCESSING_stratSplit(dataset,k)
+    
+    measures <- model(splitData$train, splitData$test, (k==KFOLDS), ...)
+    
+    allResults <- rbind(allResults,data.frame(measures))
+  }
+  # Return the means from all the experiments back as a list
+  getMeans<-colMeans(allResults)
+  getMeans[1:4] <- as.integer(getMeans[1:4])
+  
+  #290520NRT return the above with the rounded values
+  return(as.list(getMeans))
+}

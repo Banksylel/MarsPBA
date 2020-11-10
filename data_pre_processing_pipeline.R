@@ -11,6 +11,7 @@
 #   UPDATE
 #   1.00      08/11/2020    Chris Jennings    Initial Version
 #   1.01      08/11/2020    Brian Nyathi      + Balancing of dataset
+#   1.02      09/11/2020    Ryan Banks        Called functions for splitting the dataset with k-fold cross validation
 # *************************************************************
 
 #  clears all objects in "global environment"
@@ -24,7 +25,7 @@ OUTPUT_FIELD      <- "Churn"              # Field name of the output class to pr
 
 SCALE_DATASET     <- TRUE                 # Set to true to scale dataset before ML stage
 OUTLIER_CONF      <- 0.9                  # Confidence p-value for outlier detection
-                                          # Set to negative means analyse but do not replace outliers
+# Set to negative means analyse but do not replace outliers
 
 TYPE_DISCREET     <- "DISCREET"           # field is discreet (numeric)
 TYPE_ORDINAL      <- "ORDINAL"            # field is continuous numeric
@@ -34,6 +35,8 @@ TYPE_IGNORE       <- "IGNORE"             # field is not encoded
 
 DISCREET_BINS     <- 5                    # Number of empty bins to determine discreet
 MAX_LITERALS      <- 55                   # Maximum number of hotcoding new fields
+
+KFOLDS           <- 5
 
 # Define and then load the libraries used in this project
 # Library from CRAN     Version
@@ -54,9 +57,26 @@ MYLIBRARIES<-c("outliers",
                "stringr",
                "PerformanceAnalytics")
 
-# User defined functions
+# Write ML Models here
 
 
+test <- function(train,test,plot=TRUE){
+  
+  return(train)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+######## Main Function ########
 
 # ************************************************
 # main() :
@@ -68,9 +88,9 @@ MYLIBRARIES<-c("outliers",
 #
 # ************************************************
 main<-function(){
-
+  
   print("Inside main function")
-
+  
   # ************************************************
   # Read data from file
   telco<-NreadDataset(DATASET_FILENAME)
@@ -95,7 +115,7 @@ main<-function(){
   # ************************************************
   # Cast SeniorCitizen to string so that it is interpreted as categorical
   telco$SeniorCitizen<-as.character(telco$SeniorCitizen)
-
+  
   # ************************************************
   # Set TotalCharges to zero where tenure is zero
   telco[which(telco$tenure==0),"TotalCharges"]<--0
@@ -104,79 +124,90 @@ main<-function(){
   # One-hot encoding special cases
   telco<-PREPROCESSING_one_hot_special(telco)
   
-
+  
   # ************************************************
   #
   NPREPROCESSING_prettyDataset(telco)
-
+  
   # ************************************************
   # Determine if the field appears numeric or symbolic
   field_types<-NPREPROCESSING_initialFieldType(telco)
-
+  
   # ************************************************
   # View the field types on the console
-
+  
   numeric_fields<-names(telco)[field_types=="NUMERIC"]
   print(paste("NUMERIC FIELDS=",length(numeric_fields)))
   print(numeric_fields)
-
+  
   symbolic_fields<-names(telco)[field_types=="SYMBOLIC"]
   print(paste("SYMBOLIC FIELDS=",length(symbolic_fields)))
   print(symbolic_fields)
-
+  
   # ************************************************
   # Determine if the numeric fields might be discreet numeric
-
+  
   field_types1<-NPREPROCESSING_discreetNumeric(dataset=telco,
                                                field_types=field_types,
                                                cutoff=DISCREET_BINS)
-
+  
   results<-data.frame(field=names(telco),initial=field_types,types1=field_types1)
   print(formattable::formattable(results))
-
+  
   # ************************************************
   # This is a sub-set frame of just the ordinal fields
   ordinals<-telco[,which(field_types1==TYPE_ORDINAL)]
-
+  
   # Replace outlying ordinals with mean values
   ordinals<-NPREPROCESSING_outlier(ordinals=ordinals,confidence=OUTLIER_CONF)
-
+  
   # ************************************************
   # z-scale
   zscaled<-as.data.frame(scale(ordinals,center=TRUE, scale=TRUE))
-
+  
   # Scaled numeric input fields to [0.0,1.0]
   ordinalReadyforML<-Nrescaleentireframe(zscaled)
-
+  
   # ************************************************
   # Process the categorical (symbolic/discreet) fields using 1-hot-encoding
   catagoricalReadyforML<-NPREPROCESSING_categorical(dataset=telco,field_types=field_types1)
-
+  
   print(formattable::formattable(data.frame(fields=names(catagoricalReadyforML))))
-
+  
   # Number of non-numeric fields before transformation
   # Which fields are either SYMBOLIC or DISCREET
   nonNumericbefore<-length(which(field_types1!=TYPE_ORDINAL))
-
+  
   # How many fields have be generated through the 1-hot-encoding process
   nonNumerictranformed<-ncol(catagoricalReadyforML)
   print(paste("Symbolic fields. Before encoding=",nonNumericbefore,"After",nonNumerictranformed))
-
+  
   # Output the names of the encoded fields (literals)
   print(formattable::formattable(data.frame(field=1:nonNumerictranformed,encoded=names(catagoricalReadyforML))))
-
+  
   # ************************************************
   # Combine the two sets of data that are read for ML
   combinedML<-cbind(ordinalReadyforML,catagoricalReadyforML)
-
+  
   # Remove redundant fields
   combinedML<-NPREPROCESSING_redundantFields(dataset=combinedML,cutoff=OUTLIER_CONF)
   
-  # The dataset for ML information
-  print(paste("Fields=",ncol(combinedML)))
   
+  ### Data Splitting ###
+  
+  #assigns a fold ID to each data entry
+  newDataset <- PREPROCESSING_stratDataset(combinedML, KFOLDS)
+  #runs the ML model for each k fold
+  kResult <- PREPROCESSING_trainTestSplit(newDataset, test)
+  
+  #print(kResult)
+  
+  
+  
+  # The dataset for ML information
+  print(paste("Fields=",ncol(newDataset)))
   print("End")
-
+  
 } #endof main()
 
 # ************************************************
@@ -216,4 +247,3 @@ print("PBA TEAM MARS: DATA PRE-PROCESSING PIPELINE")
 main()
 
 print("end")
-
