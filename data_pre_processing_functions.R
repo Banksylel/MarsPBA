@@ -156,33 +156,3 @@ PREPROCESSING_stratSplit <- function(dataset, kfold){
     test=test))
 }
 
-
-# ************************************************
-# PREPROCESSING_trainTestSplit() :
-#
-#
-# INPUT   :   data frame         - dataset        - dataset
-#             object function    - model            - name of function
-#             ...                - optional        - parameters are passed on
-#
-# OUTPUT  :   data frame         - dataset        - dataset with foldID added
-#
-# ************************************************
-PREPROCESSING_trainTestSplit <- function(dataset, model, ...){
-  allResults<-data.frame()
-  
-  for (k in 1:KFOLDS){
-    
-    splitData <- PREPROCESSING_stratSplit(dataset,k)
-    
-    measures <- model(splitData$train, splitData$test, (k==KFOLDS), ...)
-    
-    allResults <- rbind(allResults,data.frame(measures))
-  }
-  # Return the means from all the experiments back as a list
-  getMeans<-colMeans(allResults)
-  getMeans[1:4] <- as.integer(getMeans[1:4])
-  
-  #290520NRT return the above with the rounded values
-  return(as.list(getMeans))
-}

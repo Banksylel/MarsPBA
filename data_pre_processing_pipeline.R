@@ -197,11 +197,21 @@ main<-function(){
   
   #assigns a fold ID to each data entry
   newDataset <- PREPROCESSING_stratDataset(combinedML, KFOLDS)
-  #runs the ML model for each k fold
-  kResult <- PREPROCESSING_trainTestSplit(newDataset, test)
   
-  #print(kResult)
   
+  #this creates test and train data for each k fold.
+  ######## the name of the dataframes is either test or train with the kfold number infront of it##########
+  ########            eg. test2 = test dataset for the 2nd kfold                                ##########                 
+  for (k in 1:KFOLDS){
+    newDataset <- newDataset[order(runif(nrow(newDataset))),]
+    splitData <- PREPROCESSING_stratSplit(newDataset,KFOLDS)
+    trainAssign <- paste0("train",k)
+    testAssign <- paste0("test",k)
+    assign(trainAssign, splitData$train)
+    assign(testAssign, splitData$test)
+  }
+  
+  #**************** after the ml model is run, the mean of the results for each kfold should be returned **************
   
   
   # The dataset for ML information
