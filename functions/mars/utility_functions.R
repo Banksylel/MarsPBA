@@ -12,4 +12,42 @@
 #   UPDATE
 #   1.00      11/11/2020    Chris Jennings    Initial Version
 
+keepFields <- function(dataset,fieldNames){
+  sub <- dataset[ , (names(dataset) %in% fieldNames)]
+  return(sub)
+}
+
+dropFields <- function(dataset,fieldNames){
+  sub <- dataset[ , !(names(dataset) %in% fieldNames)]
+  return(sub)
+}
+
+
+kfold <-  function(dataset, k, FUN,...){
+  print(paste("Running K-Fold cross validation with", k, "folds"))
+
+  dataset <- PREPROCESSING_stratDataset(dataset, k)
+  dataset <- dataset[order(runif(nrow(dataset))),]
+  
+  results <-  data.frame()
+  
+  for(i in 1:k){
+    train <-  subset(dataset, (dataset$foldId!=i))
+    test <-  dataset[dataset$foldId == i,]
+    
+    train <-  dropFields(train, c("foldId"))
+    test <-  dropFields(test, c("foldId"))
+    
+    result <-  FUN(train,test, plot=TRUE, vv)
+    
+    results <-rbind(results, data.frame(result))
+  }
+  
+  avgs <-  colMeans(results)
+  print("cat")
+  avgs[1:4] <-  as.integer(round(avgs[1:4]))
+  
+  return(avgs)
+}
+
 print("Sourcing utility_functions.R ")

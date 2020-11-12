@@ -48,11 +48,105 @@ MYLIBRARIES<-c("outliers",
                "MASS",
                "formattable",
                "stats",
-               "PerformanceAnalytics")
+               "PerformanceAnalytics",
+               'devtools',
+               'plotrix',
+               'reprtree',
+               'tree')
+
+
 
 # User defined functions are next
 
-FOREST_SIZE       <- 3000                 # Number of trees in the forest
+FOREST_SIZE       <- 1000                 # Number of trees in the forest
+MAX_NODES <-  NULL
+MTRY <- 5
+
+
+
+findOptimalTreeParameters <- function(dataset){
+  forest_sizes <-  c(250, 300, 350, 400, 450, 500, 550, 600, 800, 1000, 2000, 3000, 4000)
+  max_nodes <-  c(5: 15, NULL)
+  mtry <- c(1:10)
+  
+  
+
+  
+
+  #Determine best mtry
+  for(i in 1:length(mtry)){
+    FOREST_SIZE <-  1000
+    MAX_NODES <- NULL
+    MTRY <-  mtry[i]
+    
+    results <-  kfold(dataset, 5, randomForest)
+    results <-  c(results, FOREST_SIZE=FOREST_SIZE, MAX_NODES=MAX_NODES, MTRY=MTRY)
+
+    if(i==1){
+      allResults<-data.frame(MTRYTEST=unlist(results))
+      
+    }else{
+      allResults<-cbind(allResults,data.frame(MTRYTEST=unlist(results)))
+    }
+  }
+  allResults<-data.frame(t(allResults))
+  print(formattable::formattable(allResults))
+  
+  
+  
+  # 
+  # 
+  # #Determine best mtry
+  # for(i in 1:length(max_nodes)){
+  #   FOREST_SIZE <-  1000
+  #   MAX_NODES <- max_nodes[i]
+  #   MTRY <-  5
+  #   
+  #   results <-  kfold(dataset, 5, randomForest)
+  #   results <-  c(results, FOREST_SIZE=FOREST_SIZE, MAX_NODES=MAX_NODES, MTRY=MTRY)
+  #   
+  #   if(i==1){
+  #     allResults<-data.frame(MTRYTEST=unlist(results))
+  #     
+  #   }else{
+  #     allResults<-cbind(allResults,data.frame(MTRYTEST=unlist(results)))
+  #   }
+  # }
+  # allResults<-data.frame(t(allResults))
+  # print(formattable::formattable(allResults))
+  # 
+  # 
+  # 
+  # 
+  # #Determine best mtry
+  # for(i in 1:length(forest_sizes)){
+  #   FOREST_SIZE <-  forest_sizes[i]
+  #   MAX_NODES <- NULL
+  #   MTRY <-  5
+  #   
+  #   results <-  kfold(dataset, 5, randomForest)
+  #   results <-  c(results, FOREST_SIZE=FOREST_SIZE, MAX_NODES=MAX_NODES, MTRY=MTRY)
+  #   
+  #   if(i==1){
+  #     allResults<-data.frame(MTRYTEST=unlist(results))
+  #     
+  #   }else{
+  #     allResults<-cbind(allResults,data.frame(MTRYTEST=unlist(results)))
+  #   }
+  # }
+  # allResults<-data.frame(t(allResults))
+  # print(formattable::formattable(allResults))
+  # 
+  # 
+  
+  
+  
+  
+}
+
+
+
+
 
 
 getTreeClassifications<-function(myTree,
@@ -106,10 +200,9 @@ getTreeClassifications<-function(myTree,
 #         :   Data Frame     - measures  - performance metrics
 #
 # ************************************************
-randomForest<-function(train,test,plot=TRUE){
+randomForest<-function(train,test, plot=TRUE, ...){
   myTitle<-(paste("Preprocessed Dataset. Random Forest=",FOREST_SIZE,"trees"))
   print(myTitle)
-  
   positionClassOutput<-which(names(train)==OUTPUT_FIELD)
   
   # train data: dataframe with the input fields
@@ -122,9 +215,20 @@ randomForest<-function(train,test,plot=TRUE){
                                  factor(train_expected),
                                  ntree=FOREST_SIZE ,
                                  importance=TRUE,
-                                 mtry=sqrt(ncol(train_inputs)))
+                                 maxnodes=MAX_NODES,
+                                 mtry=MTRY)
   
-  
+  if(plot==TRUE){
+    #Visualise some trees
+    print("Example tree")
+    tree1 <- randomForest::getTree(rf, k=1, labelVar=TRUE)
+    #tree2 <- getTree(rf, 42) 
+    #tree3 <- getTree(rf, 100) 
+    print(formattable::formattable(tree1))
+    #reprtree:::plot.getTree(rf)
+    
+    
+  }
   # ************************************************
   # Use the created decision tree with the test dataset
   measures<-getTreeClassifications(myTree = rf,
@@ -150,29 +254,6 @@ randomForest<-function(train,test,plot=TRUE){
 } #endof randomForest()
 
 
-kfold <-  function(dataset, k, FUN){
-  
-  results <-  data.frame()
-  
-  for(i in 1:k){
-    train <-  subset(dataset, (dataset$foldId!=i))
-    test <-  dataset[dataset$foldId == i,]
-    
-    drops <- c("foldId", "gender")
-    train <- train[ , !(names(train) %in% drops)]
-    test <- test[ , !(names(test) %in% drops)]
-    
-    result <-  FUN(train,test)
-    
-    results <-rbind(results, data.frame(result))
-  }
-  
-  avgs <-  colMeans(results)
-  print("cat")
-  avgs[1:4] <-  as.integer(round(avgs[1:4]))
-  
-  print("cat")
-}
 
 # ************************************************
 # main() :
@@ -186,11 +267,20 @@ kfold <-  function(dataset, k, FUN){
 # ************************************************
 main<-function(){
   
-
+  keeps <-  c("TotalCharges", "MonthlyCharges", "tenure", "Contract_Monthtomonth", "InternetService_Fiber", "InternetService_TechSupport", "Contract_Twoyear", "PaperlessBilling", "InternetService_NoInternetService", "InternetService_DSL","Churn")
+  
   dataset <- mars_GetPreprocessedDataset(FALSE)
   
-  kfold(dataset, 5, randomForest)
+  dataset <-  keepFields(dataset, keeps)
   
+  ##UNCOMMENT OUT TO RUN, TAKES A LONG TIME. 
+  optimals <-  findOptimalTreeParameters(dataset)
+  
+  
+  #results <-  kfold(dataset, 5, randomForest, forestSize = 3000)
+  
+  
+  #print(results)
   
 } #endof main()
 
@@ -214,6 +304,7 @@ source("functions/mars/data_pre_processing_pipeline.R")
 source("functions/mars/data_pre_processing_functions.R")
 source("functions/nick/4labfunctions.R")
 source("functions/nick/lab4DataPrepNew.R")
+source("functions/mars/utility_functions.R")
 
 set.seed(123)
 
