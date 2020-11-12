@@ -15,9 +15,6 @@
 #   1.03      11/11/2020    Chris Jennings    Source all functions files recursively.
 # *************************************************************
 
-#  clears all objects in "global environment"
-rm(list=ls())
-
 # ************************************************
 #GLOBALS
 
@@ -60,11 +57,6 @@ MYLIBRARIES<-c("outliers",
 
 # Write ML Models here
 
-
-test <- function(train,test,plot=TRUE){
-  
-  return(train)
-}
 
 
 ######## Main Function ########
@@ -233,42 +225,3 @@ mars_GetPreprocessedDataset<-function(printflag){
   
 } #endof main()
 
-
-main <- function(){
-  print("hi")
-}
-
-# ************************************************
-# This is where R starts execution
-
-# Automatically release memory
-gc()
-
-# Clear plots and other graphics in RStudio output
-if(!is.null(dev.list())) dev.off()
-graphics.off()
-
-# Clear all warning messages
-assign("last.warning", NULL, envir = baseenv())
-
-# Clears the RStudio console area
-cat("\014")
-
-# If library not already on your computer this will download and
-# install the library. Each library is activated.
-library(pacman)
-pacman::p_load(char=MYLIBRARIES,install=TRUE,character.only=TRUE)
-
-source("functions/nick/lab3dataPrep.R")
-source("functions/mars/data_pre_processing_functions.R")
-
-
-# Reset the pseudo-random number generator to start at the same point
-set.seed(123)
-
-print("PBA TEAM MARS: DATA PRE-PROCESSING PIPELINE")
-
-# ************************************************
-# Call the main function
-
-print("end")

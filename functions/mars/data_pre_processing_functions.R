@@ -27,6 +27,8 @@ PREPROCESSING_one_hot_special<-function(dataset){
   # Create new columns with all values initially 0
   dataset<-cbind(dataset, data.frame("PhoneService_SingleLine" = "No",
                                      "PhoneService_MultipleLines" = "No",
+                                     "PhoneService_NoPhoneService" = "No",
+                                     "InternetService_NoInternetService" = "No",
                                      "InternetService_DSL" = "No",
                                      "InternetService_Fiber" = "No",
                                      "InternetService_OnlineSecurity" = "No",
@@ -40,12 +42,13 @@ PREPROCESSING_one_hot_special<-function(dataset){
   
   # Customers with phone service have PhoneService_SingleLine=1 xor PhoneService_MultipleLines=1.
   # Both fields set to zero when customer has no phone service.
-  dataset[which(dataset$PhoneService=="Yes"),"PhoneService_SingleLine"]<-"Yes"
+  dataset[which(dataset$MultipleLines=="No"),"PhoneService_SingleLine"]<-"Yes"
   dataset[which(dataset$MultipleLines=="Yes"),"PhoneService_MultipleLines"]<-"Yes"
-  dataset[which(dataset$MultipleLines=="Yes"),"PhoneService_SingleLine"]<-"No"
+  dataset[which(dataset$MultipleLines=="No phone service"),"PhoneService_NoPhoneService"]<-"Yes"
   
   # Customers with internet have InternetService_DSL=1 xor InternetService_Fiber=1.
   # Both fields set to zero when customer has no internet service.
+  dataset[which(dataset$InternetService=="No"),"InternetService_NoInternetService"]<-"Yes"
   dataset[which(dataset$InternetService=="DSL"),"InternetService_DSL"]<-"Yes"
   dataset[which(dataset$InternetService=="Fiber optic"),"InternetService_Fiber"]<-"Yes"
   
