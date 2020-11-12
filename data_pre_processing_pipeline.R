@@ -12,6 +12,7 @@
 #   1.00      08/11/2020    Chris Jennings    Initial Version
 #   1.01      08/11/2020    Brian Nyathi      + Balancing of dataset
 #   1.02      09/11/2020    Ryan Banks        Called functions for splitting the dataset with k-fold cross validation
+#   1.03      11/11/2020    Chris Jennings    Source all functions files recursively.
 # *************************************************************
 
 #  clears all objects in "global environment"
@@ -64,16 +65,6 @@ test <- function(train,test,plot=TRUE){
   
   return(train)
 }
-
-
-
-
-
-
-
-
-
-
 
 
 ######## Main Function ########
@@ -231,11 +222,9 @@ cat("\014")
 library(pacman)
 pacman::p_load(char=MYLIBRARIES,install=TRUE,character.only=TRUE)
 
-
-#Source functions
-source("lab3dataPrep.R")    # From Prof Nick's lab
-source("lab2functions.R")   # From Prof Nick's lab
-source("data_pre_processing_functions.R")
+#Source files
+funcs<-list.files(path = "./functions", recursive = TRUE, full.names = TRUE)
+sapply(funcs, source)
 
 # Reset the pseudo-random number generator to start at the same point
 set.seed(123)
