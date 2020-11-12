@@ -233,6 +233,11 @@ mars_GetPreprocessedDataset<-function(printflag){
   
 } #endof main()
 
+
+main <- function(){
+  print("hi")
+}
+
 # ************************************************
 # This is where R starts execution
 
@@ -265,6 +270,5 @@ print("PBA TEAM MARS: DATA PRE-PROCESSING PIPELINE")
 
 # ************************************************
 # Call the main function
-mars_GetPreprocessedDataset(TRUE)
 
 print("end")
