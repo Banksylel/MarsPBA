@@ -52,6 +52,128 @@ MYLIBRARIES<-c("outliers",
 
 # User defined functions are next
 
+FOREST_SIZE       <- 3000                 # Number of trees in the forest
+
+
+getTreeClassifications<-function(myTree,
+                                 testDataset,
+                                 title,
+                                 classLabel=1,
+                                 plot=TRUE){
+  
+  positionClassOutput=which(names(testDataset)==OUTPUT_FIELD)
+  
+  #test data: dataframe with with just input fields
+  test_inputs<-testDataset[-positionClassOutput]
+  
+  # Generate class membership probabilities
+  # Column 1 is for class 0 (bad loan) and column 2 is for class 1 (good loan)
+  
+  testPredictedClassProbs<-predict(myTree,test_inputs, type="prob")
+  
+  # Get the column index with the class label
+  classIndex<-which(as.numeric(colnames(testPredictedClassProbs))==classLabel)
+  
+  # Get the probabilities for classifying the good loans
+  test_predictedProbs<-testPredictedClassProbs[,classIndex]
+  
+  #test data: vector with just the expected output class
+  test_expected<-testDataset[,positionClassOutput]
+  
+  measures<-NdetermineThreshold(test_expected=test_expected,
+                                test_predicted=test_predictedProbs,
+                                plot=plot,
+                                title=title)
+  
+  if (plot==TRUE)
+    NprintMeasures(results=measures,title=title)
+  
+  return(measures)
+} #endof getTreeClassifications()
+
+
+# ************************************************
+# randomForest() :
+#
+# Create Random Forest on pre-processed dataset
+#
+# INPUT   :
+#         :   Data Frame     - train       - train dataset
+#             Data Frame     - test        - test dataset
+#             boolean        - plot        - TRUE = output charts/results
+#
+# OUTPUT  :
+#         :   Data Frame     - measures  - performance metrics
+#
+# ************************************************
+randomForest<-function(train,test,plot=TRUE){
+  myTitle<-(paste("Preprocessed Dataset. Random Forest=",FOREST_SIZE,"trees"))
+  print(myTitle)
+  
+  positionClassOutput<-which(names(train)==OUTPUT_FIELD)
+  
+  # train data: dataframe with the input fields
+  train_inputs<-train[-positionClassOutput]
+  
+  # train data: vector with the expedcted output
+  train_expected<-train[,positionClassOutput]
+  
+  rf<-randomForest::randomForest(train_inputs,
+                                 factor(train_expected),
+                                 ntree=FOREST_SIZE ,
+                                 importance=TRUE,
+                                 mtry=sqrt(ncol(train_inputs)))
+  
+  
+  # ************************************************
+  # Use the created decision tree with the test dataset
+  measures<-getTreeClassifications(myTree = rf,
+                                   testDataset = test,
+                                   title=myTitle,
+                                   plot=plot)
+  
+  if (plot==TRUE){
+    # Get importance of the input fields
+    importance<-randomForest::importance(rf,scale=TRUE,type=1)
+    importance<-importance[order(importance,decreasing=TRUE),,drop=FALSE]
+    
+    colnames(importance)<-"Strength"
+    
+    barplot(t(importance),las=2, border = 0,
+            cex.names =0.7,
+            main=myTitle)
+    
+    print(formattable::formattable(data.frame(importance)))
+  }
+  
+  return(measures)
+} #endof randomForest()
+
+
+kfold <-  function(dataset, k, FUN){
+  
+  results <-  data.frame()
+  
+  for(i in 1:k){
+    train <-  subset(dataset, (dataset$foldId!=i))
+    test <-  dataset[dataset$foldId == i,]
+    
+    drops <- c("foldId", "gender")
+    train <- train[ , !(names(train) %in% drops)]
+    test <- test[ , !(names(test) %in% drops)]
+    
+    result <-  FUN(train,test)
+    
+    results <-rbind(results, data.frame(result))
+  }
+  
+  avgs <-  colMeans(results)
+  print("cat")
+  avgs[1:4] <-  as.integer(round(avgs[1:4]))
+  
+  print("cat")
+}
+
 # ************************************************
 # main() :
 # main entry point to execute analytics
@@ -64,7 +186,11 @@ MYLIBRARIES<-c("outliers",
 # ************************************************
 main<-function(){
   
-  print("cat")
+
+  dataset <- mars_GetPreprocessedDataset(FALSE)
+  
+  kfold(dataset, 5, randomForest)
+  
   
 } #endof main()
 
@@ -85,6 +211,9 @@ pacman::p_load(char=MYLIBRARIES,install=TRUE,character.only=TRUE)
 
 #Load additional R script files provide for this lab
 source("functions/mars/data_pre_processing_pipeline.R")
+source("functions/mars/data_pre_processing_functions.R")
+source("functions/nick/4labfunctions.R")
+source("functions/nick/lab4DataPrepNew.R")
 
 set.seed(123)
 
