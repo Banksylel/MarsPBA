@@ -37,12 +37,9 @@ PREPROCESSING_one_hot_special<-function(dataset){
                                      "InternetService_StreamingMovies" = "No",
                                      "PaymentMethod_Automatic" = "No"))
   
-  
   # Customers with phone service have PhoneService_SingleLine=1 xor PhoneService_MultipleLines=1.
   # Both fields set to zero when customer has no phone service.
-  dataset[which(dataset$PhoneService=="Yes"),"PhoneService_SingleLine"]<-"Yes"
-  dataset[which(dataset$MultipleLines=="Yes"),"PhoneService_MultipleLines"]<-"Yes"
-  dataset[which(dataset$MultipleLines=="Yes"),"PhoneService_SingleLine"]<-"No"
+  dataset[which(dataset$MultipleLines=="No phone service"),"MultipleLines"]<-"No"
   
   # Customers with internet have InternetService_DSL=1 xor InternetService_Fiber=1.
   # Both fields set to zero when customer has no internet service.
