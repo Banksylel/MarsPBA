@@ -155,3 +155,4 @@ PREPROCESSING_stratSplit <- function(dataset, kfold){
     train=train,
     test=test))
 }
+
