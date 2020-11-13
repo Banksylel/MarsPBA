@@ -70,7 +70,7 @@ MYLIBRARIES<-c("outliers",
 # OUTPUT      :   None
 #
 # ************************************************
-mars_GetPreprocessedDataset<-function(printflag){
+mars_GetPreprocessedDataset<-function(printflag = FALSE){
   
   if(printflag){
     print("Inside main function")
