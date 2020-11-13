@@ -80,6 +80,7 @@ mars_GetPreprocessedDataset<-function(printflag = FALSE){
   # Read data from file
   dataset<-NreadDataset(DATASET_FILENAME)
   
+  
   #*************************************************
   #Return all rows that have churned. There are 1869 rows
   y <-dataset[dataset$Churn == "Yes", ]
@@ -92,6 +93,8 @@ mars_GetPreprocessedDataset<-function(printflag = FALSE){
   #Return balanced and shuffled dataset
   yandn <- rbind(y, n_final)
   dataset <- yandn[sample(1:nrow(yandn)), ]
+  
+  
   
   # ************************************************
   # Remove customerID field because it is irrelevant
