@@ -196,7 +196,7 @@ getTreeClassifications<-function(myTree,
 #         :   Data Frame     - measures  - performance metrics
 #
 # ************************************************
-randomForest<-function(train,test, plot=TRUE, ...){
+randomForest<-function(train,test, forestSize ,plot=TRUE, ...){
   myTitle<-(paste("Preprocessed Dataset. Random Forest=",FOREST_SIZE,"trees"))
   print(myTitle)
   positionClassOutput<-which(names(train)==OUTPUT_FIELD)
@@ -273,7 +273,7 @@ main<-function(){
   #optimals <-  findOptimalTreeParameters(dataset)
   
   
-  results <-  kfold(dataset, 5, randomForest)
+  results <-  kfold(dataset, 5, randomForest(forestSize=69))
   
   
   print(results)

@@ -38,13 +38,12 @@ kfold <-  function(dataset, k, FUN,...){
     train <-  dropFields(train, c("foldId"))
     test <-  dropFields(test, c("foldId"))
     
-    result <-  FUN(train,test, plot=TRUE, vv)
+    result <-  FUN(train,test, plot=TRUE)
     
     results <-rbind(results, data.frame(result))
   }
   
   avgs <-  colMeans(results)
-  print("cat")
   avgs[1:4] <-  as.integer(round(avgs[1:4]))
   
   return(avgs)
