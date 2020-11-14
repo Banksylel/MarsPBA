@@ -13,11 +13,11 @@
 #   1.00      11/11/2020    Chris Jennings    Initial Version
 
 DEEP_HIDDEN       <- c(5,5)               # Number of neurons in each layer
-DEEP_STOPPING     <- 2                    # Number of times no improvement before stop
-DEEP_TOLERANCE    <- 0.01                 # Error threshold
-DEEP_ACTIVATION   <- "Tanh"    # Non-linear activation function
+DEEP_STOPPING     <- 3                    # Number of times no improvement before stop
+DEEP_TOLERANCE    <- 0.015                 # Error threshold
+DEEP_ACTIVATION   <- "TanhWithDropout"    # Non-linear activation function
 DEEP_REPRODUCABLE <- TRUE                 # Set to TRUE to test training is same for each run
-BASICNN_EPOCHS = 100
+BASICNN_EPOCHS = 350
 
 HIDDEN_TEST = "Hidden Nodes"
 STOPPING_TEST = "Stopping threshold"
@@ -63,7 +63,7 @@ findOptimalNetworkParameter <- function(dataset, testName, testSet, kfolds){
       test <-  dataset[dataset$foldId == k,]
       train <-  dropFields(train, c("foldId"))
       test <-  dropFields(test, c("foldId"))
-      result <-  deepNeural(train, test, hidden=hiddenNodes, stopping_rounds=stopping, stopping_tolerance=tolerance , activation=activation, plot=TRUE)
+      result <-  deepNeural(train, test, hidden=hiddenNodes, stopping_rounds=stopping, stopping_tolerance=tolerance , activation=activation, plot=FALSE)
       results <-rbind(results, data.frame(result))
     }
     
@@ -178,11 +178,11 @@ main <- function(){
   #dataset <-  keepFields(dataset, keeps)
   
   ##UNCOMMENT OUT TO RUN, TAKES A LONG TIME. 
-  optimals <-  findAllOptimalNetworkParameters(dataset,5)
+  #optimals <-  findAllOptimalNetworkParameters(dataset,5)
   
   
-  #results <-  kfold(dataset, 5, deepNeural)
-  
+  results <-  kfold(dataset, 5, deepNeural)
+  print(results)
   
 
   
