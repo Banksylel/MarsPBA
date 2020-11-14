@@ -70,7 +70,7 @@ MYLIBRARIES<-c("outliers",
 # OUTPUT      :   None
 #
 # ************************************************
-mars_GetPreprocessedDataset<-function(printflag = FALSE){
+mars_GetPreprocessedDataset<-function(scaleflag = TRUE, printflag = FALSE){
   
   if(printflag){
     print("Inside main function")
@@ -160,12 +160,19 @@ mars_GetPreprocessedDataset<-function(printflag = FALSE){
   # Replace outlying ordinals with mean values
   ordinals<-NPREPROCESSING_outlier(ordinals=ordinals,confidence=OUTLIER_CONF)
   
-  # ************************************************
-  # z-scale
-  zscaled<-as.data.frame(scale(ordinals,center=TRUE, scale=TRUE))
+  if(scaleflag==TRUE){
+    # ************************************************
+    # z-scale
+    zscaled<-as.data.frame(scale(ordinals,center=TRUE, scale=TRUE))
+    
+    # Scaled numeric input fields to [0.0,1.0]
+    ordinalReadyforML<-Nrescaleentireframe(zscaled)
+  }else{
+    ordinalReadyforML<-ordinals
+    
+  }
   
-  # Scaled numeric input fields to [0.0,1.0]
-  ordinalReadyforML<-Nrescaleentireframe(zscaled)
+
   
   # ************************************************
   # Process the categorical (symbolic/discreet) fields using 1-hot-encoding

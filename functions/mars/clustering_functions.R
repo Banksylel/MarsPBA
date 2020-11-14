@@ -44,12 +44,7 @@ plotKValueTests <- function(dataset){
   
   positionOutput<-which(names(dataset)==OUTPUT_FIELD)
   predictors<-dataset[,-positionOutput]
-  
-  # ************************************************
-  # cluster plot of the 4 clusters (uses ggplot2 library)
-  
-  p<-factoextra::fviz_cluster(modelKmeans, data = predictors,geom = "point")
-  print(p)
+
   
   results<-list()
   r<-1
@@ -74,11 +69,25 @@ plotKValueTests <- function(dataset){
 }
 
 
-calculateClusterChurnRatios <- function(kmeansModel){
+calculateClusterChurnRatios <- function(dataset, kmeansModel){
   
   K <-  length(kmeansModel$size)
   print(K)
   
+  for(i in 1:K){
+    cluster<-dataset[which(kmeansModel$cluster==i),]
+    
+    numChurned <- nrow(cluster[which(cluster$Churn==1),])
+    numRetained <-  nrow(cluster[which(cluster$Churn==0),])
+    
+    print(paste("Cluster ",i,": Churned: ", numChurned ,delim=""))
+    print(paste("Cluster ",i,": Retained: ", numRetained ,delim=""))
+    
+    churnRatio <-  numChurned/(numRetained+numChurned)
+    
+    print(paste("Cluster ",i,": Churn ratio: ", churnRatio ,delim=""))
+    
+  }
   
 }
 
@@ -98,10 +107,10 @@ calculateClusterChurnRatios <- function(kmeansModel){
 main<-function(){
   
   # Read data from file
-  dataset <- mars_GetPreprocessedDataset(FALSE)
+  dataset <- mars_GetPreprocessedDataset(printflag=FALSE)
   
   
-  plotKValueTests(dataset)
+  #plotKValueTests(dataset)
   
 
   positionOutput<-which(names(dataset)==OUTPUT_FIELD)
@@ -111,8 +120,9 @@ main<-function(){
   
   print(str(modelKmeans))
   
+  originalDataset <- mars_GetPreprocessedDataset(scaleflag = FALSE, printflag=FALSE)
   
-  print(calculateClusterChurnRatios(modelKmeans))
+  print(calculateClusterChurnRatios(originalDataset,modelKmeans))
   
 
  
