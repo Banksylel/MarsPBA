@@ -122,11 +122,10 @@ findAllOptimalNetworkParameters <- function(dataset, k){
 #
 # ************************************************
 deepNeural<-function(train,test,hidden=DEEP_HIDDEN, stopping_rounds=DEEP_STOPPING,stopping_tolerance=DEEP_TOLERANCE 
-                     , activation=DEEP_ACTIVATION, plot=TRUE, catboy=2){
+                     , activation=DEEP_ACTIVATION, plot=TRUE){
   
   myTitle<-"Preprocessed Dataset. Deep NN"
-  print("CATBOYYYYYYYYYYYYYY")
-  print(catboy)
+
   deep_classifier<-N_DEEP_TrainClassifier(train=train,
                                           fieldNameOutput=OUTPUT_FIELD,
                                           hidden=hidden,
