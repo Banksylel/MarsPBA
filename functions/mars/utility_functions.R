@@ -32,13 +32,14 @@ kfold <-  function(dataset, k, FUN,...){
   results <-  data.frame()
   
   for(i in 1:k){
+    print(paste("Evaluating fold", i, "/", k))
     train <-  subset(dataset, (dataset$foldId!=i))
     test <-  dataset[dataset$foldId == i,]
     
     train <-  dropFields(train, c("foldId"))
     test <-  dropFields(test, c("foldId"))
     
-    result <-  FUN(train,test, plot=FALSE)
+    result <-  FUN(train,test, plot=FALSE, ...)
     
     results <-rbind(results, data.frame(result))
   }
