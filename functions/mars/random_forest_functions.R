@@ -273,7 +273,7 @@ main<-function(){
   #optimals <-  findOptimalTreeParameters(dataset)
   
   
-  results <-  kfold(dataset, 5, randomForest(forestSize=69))
+  results <-  kfold(dataset, 5)
   
   
   print(results)
