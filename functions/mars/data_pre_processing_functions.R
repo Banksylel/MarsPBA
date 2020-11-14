@@ -61,7 +61,7 @@ PREPROCESSING_one_hot_special<-function(dataset){
   dataset[which(dataset$StreamingMovies=="Yes"),"InternetService_StreamingMovies"]<-"Yes"
   
   # PaymentMethod values encoded as automatic or manual
-  dataset[which(str_detect(dataset$PaymentMethod, "automatic")),"PaymentMethod_Automatic"]<-"Yes"
+  dataset[which(stringr::str_detect(dataset$PaymentMethod, "automatic")),"PaymentMethod_Automatic"]<-"Yes"
   
   # Remove now-redundant fields
   dataset<-subset(dataset, select = -c(PhoneService, 

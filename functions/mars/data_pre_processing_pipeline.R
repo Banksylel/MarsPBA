@@ -67,7 +67,7 @@ MYLIBRARIES<-c("outliers",
 # OUTPUT      :   Pre-processed dataset
 #
 # ************************************************
-mars_GetPreprocessedDataset<-function(printflag){
+mars_GetPreprocessedDataset<-function(scaleflag = TRUE, printflag = FALSE){
   
   if(printflag){
     print("Inside main function")
@@ -76,6 +76,7 @@ mars_GetPreprocessedDataset<-function(printflag){
   # ************************************************
   # Read data from file
   dataset<-NreadDataset(DATASET_FILENAME)
+  
   
   #*************************************************
   #Return all rows that have churned. There are 1869 rows
@@ -89,6 +90,8 @@ mars_GetPreprocessedDataset<-function(printflag){
   #Return balanced and shuffled dataset
   yandn <- rbind(y, n_final)
   dataset <- yandn[sample(1:nrow(yandn)), ]
+  
+  
   
   # ************************************************
   # Remove customerID field because it is irrelevant
@@ -154,12 +157,19 @@ mars_GetPreprocessedDataset<-function(printflag){
   # Replace outlying ordinals with mean values
   ordinals<-NPREPROCESSING_outlier(ordinals=ordinals,confidence=OUTLIER_CONF)
   
-  # ************************************************
-  # z-scale
-  zscaled<-as.data.frame(scale(ordinals,center=TRUE, scale=TRUE))
+  if(scaleflag==TRUE){
+    # ************************************************
+    # z-scale
+    zscaled<-as.data.frame(scale(ordinals,center=TRUE, scale=TRUE))
+    
+    # Scaled numeric input fields to [0.0,1.0]
+    ordinalReadyforML<-Nrescaleentireframe(zscaled)
+  }else{
+    ordinalReadyforML<-ordinals
+    
+  }
   
-  # Scaled numeric input fields to [0.0,1.0]
-  ordinalReadyforML<-Nrescaleentireframe(zscaled)
+
   
   # ************************************************
   # Process the categorical (symbolic/discreet) fields using 1-hot-encoding

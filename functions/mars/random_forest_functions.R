@@ -48,18 +48,11 @@ MYLIBRARIES<-c("outliers",
                "MASS",
                "formattable",
                "stats",
-               "PerformanceAnalytics",
-               'devtools',
-               'plotrix',
-               'reprtree',
-               'stringr',
-               'tree')
-
-
+               "PerformanceAnalytics")
 
 # User defined functions are next
 
-FOREST_SIZE       <- 1000                 # Number of trees in the forest
+FOREST_SIZE       <- 3000                 # Number of trees in the forest
 MAX_NODES <-  NULL
 MTRY <- 5
 
@@ -201,7 +194,7 @@ getTreeClassifications<-function(myTree,
 #         :   Data Frame     - measures  - performance metrics
 #
 # ************************************************
-randomForest<-function(train,test, plot=TRUE, ...){
+randomForest<-function(train,test, forestSize ,plot=TRUE, ...){
   myTitle<-(paste("Preprocessed Dataset. Random Forest=",FOREST_SIZE,"trees"))
   print(myTitle)
   positionClassOutput<-which(names(train)==OUTPUT_FIELD)
@@ -268,20 +261,20 @@ randomForest<-function(train,test, plot=TRUE, ...){
 # ************************************************
 main<-function(){
   
-  keeps <-  c("TotalCharges", "MonthlyCharges", "tenure", "Contract_Monthtomonth", "InternetService_Fiber", "InternetService_TechSupport", "Contract_Twoyear", "PaperlessBilling", "InternetService_NoInternetService", "InternetService_DSL","Churn")
+  keeps <-  c("TotalCharges", "MonthlyCharges", "tenure", "Contract_Monthtomonth", "InternetService_Fiber", "InternetService_TechSupport", "Contract_Twoyear", "Churn")
   
   dataset <- mars_GetPreprocessedDataset(FALSE)
   
   dataset <-  keepFields(dataset, keeps)
   
   ##UNCOMMENT OUT TO RUN, TAKES A LONG TIME. 
-  optimals <-  findOptimalTreeParameters(dataset)
+  #optimals <-  findOptimalTreeParameters(dataset)
   
   
-  #results <-  kfold(dataset, 5, randomForest, forestSize = 3000)
+  results <-  kfold(dataset, 5)
   
   
-  #print(results)
+  print(results)
   
 } #endof main()
 
