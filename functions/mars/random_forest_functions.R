@@ -52,6 +52,7 @@ MYLIBRARIES<-c("outliers",
                'devtools',
                'plotrix',
                'reprtree',
+               'stringr',
                'tree')
 
 

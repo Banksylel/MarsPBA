@@ -12,7 +12,6 @@
 #   1.00      08/11/2020    Chris Jennings    Initial Version
 #   1.01      08/11/2020    Brian Nyathi      + Balancing of dataset
 #   1.02      09/11/2020    Ryan Banks        Called functions for splitting the dataset with k-fold cross validation
-#   1.03      11/11/2020    Chris Jennings    Source all functions files recursively.
 # *************************************************************
 
 # ************************************************
@@ -59,15 +58,13 @@ MYLIBRARIES<-c("outliers",
 
 
 
-######## Main Function ########
 
 # ************************************************
-# main() :
-# Main entry point
+# mars_GetPreprocessedDataset() :
 #
-# INPUT       :   None
+# INPUT       :   printflag - optionally display results
 #
-# OUTPUT      :   None
+# OUTPUT      :   Pre-processed dataset
 #
 # ************************************************
 mars_GetPreprocessedDataset<-function(printflag){
