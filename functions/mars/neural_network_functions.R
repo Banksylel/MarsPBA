@@ -40,7 +40,6 @@ findOptimalNetworkParameter <- function(dataset, testName, testSet, kfolds){
   dataset <- dataset[order(runif(nrow(dataset))),]
 
   
-
   print(paste("Running tests to determine optimal value for",testName))
   for(i in 1:length(testSet)){
     print(paste("Test",i,"of",length(testSet)))
@@ -183,9 +182,6 @@ main <- function(){
   
   results <-  kfold(dataset, 5, deepNeural)
   print(results)
-  
-
-  
 
 
 }
