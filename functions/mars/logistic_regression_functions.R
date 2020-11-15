@@ -11,8 +11,8 @@
 #
 #   UPDATE
 #   1.00      11/11/2020    Chris Jennings    Initial Version
+#   1.01      15/11/2020    Chris Jennings    Adopt k-folds
 
-print("Sourcing logistic_regression_functions.R")
 
 # Define and then load the libraries used in this project
 # Library from CRAN     Version
@@ -37,12 +37,22 @@ MYLIBRARIES<-c("outliers",
                "stringr",
                "PerformanceAnalytics")
 
-
+# ************************************************
+# Name      :   getLRClassifications() :
+# Purpose   :   Determine "measures" when using optimal threshold
+#
+# INPUT     :   glm object - trainedModel
+#           :   data frame - testDataset
+#           :   Text - Optional title
+#           :   Boolean - Enable plots
+#
+# OUTPUT    :   measures - model performance metrics
+#
+# ************************************************
 
 getLRClassifications<-function(trainedModel,
                                  testDataset,
                                  title="",
-                                 classLabel=1,
                                  plot=FALSE){
   
   positionClassOutput=which(names(testDataset)==OUTPUT_FIELD)
@@ -50,16 +60,11 @@ getLRClassifications<-function(trainedModel,
   #test data: dataframe with with just input fields
   test_inputs<-testDataset[-positionClassOutput]
   
-  # Generate class membership probabilities
-  # Column 1 is for class 0 (bad loan) and column 2 is for class 1 (good loan)
-  
+  # Get probabilities of being class 1 from the classifier
   testPredictedClassProbs<-predict(trainedModel,test_inputs, type="response")
-  
-  # Get the column index with the class label
-  classIndex<-which(as.numeric(colnames(testPredictedClassProbs))==classLabel)
-  
-  # Get the probabilities for classifying the good loans
-  test_predictedProbs<-testPredictedClassProbs#[,classIndex]
+
+  # Get the probabilities for classifying churners
+  test_predictedProbs<-testPredictedClassProbs
   
   #test data: vector with just the expected output class
   test_expected<-testDataset[,positionClassOutput]
@@ -68,43 +73,49 @@ getLRClassifications<-function(trainedModel,
                                 test_predicted=test_predictedProbs,
                                 plot=plot,
                                 title=title)
-  
-  # if (plot==TRUE)
-  #   NprintMeasures(results=measures,title=title)
-  
+
   return(measures)
 } #endof getLRClassifications()
 
 
+# ************************************************
+# Name      :   logisticRegression() :
+# Purpose   :   Train logistic regression model
+#
+# INPUT     :   data frame - training_data
+#           :   data frame - testing_data
+#           :   Boolean - plot - Enable plots
+#
+# OUTPUT    :   measures - model performance metrics
+#
+# ************************************************
 
-
-
-logisticRegression <- function(){
+logisticRegression <- function(training_data,testing_data, plot=TRUE, ...){
   print("Begin logistic regression model")
-  
-  dataset <- mars_GetPreprocessedDataset(FALSE)
 
-  
-  # Create a TRAINING dataset using first HOLDOUT% of the records
-  # and the remaining 30% is used as TEST
-  # use ALL fields (columns)
-  dataset<-dataset[sample(nrow(dataset)),]
-  training_records<-round(nrow(dataset)*(70/100))
-  training_data <- dataset[1:training_records,]
-  testing_data = dataset[-(1:training_records),]
-  
-  # First pass - determine which features impact prediction
+  # First pass - determine importance of features
   formular<-myModelFormula(dataset = training_data, fieldNameOutput = OUTPUT_FIELD)
   logr<-stats::glm(formular,data=training_data,family=quasibinomial)
   
-  # Exclude "NA" coefficients - avoids rank deficiency
-  coefs<-names(which(!is.na(logr$coefficients)))
-  coefs<-coefs[2:length(coefs)]
+  # Output of strengths
+  importance<-as.data.frame(caret::varImp(logr, scale = TRUE))
+  row.names(importance)<-gsub("[[:punct:][:blank:]]+", "", row.names(importance))
+  barplot(t(importance[order(-importance$Overall),,drop=FALSE]),
+          las=2, 
+          border = 3, 
+          cex.names = 0.8, 
+          legend.text = "Logistic regression feature importance")
   
+  # Exclude features of no importance - avoids rank deficiency issues
+  importance<-as.data.frame(caret::varImp(logr, scale = TRUE))
+  features<-data.frame(gsub("[[:blank:]]+", "", row.names(importance)), importance$Overall)
+  colnames(features)<-c("Feature", "Overall")
+  features<-features[order(-importance$Overall),]
+
   # Reconstruct model formula
-  formular<-paste(OUTPUT_FIELD, "~", paste(coefs, collapse = "+"))
+  formular<-paste(OUTPUT_FIELD, "~", paste(features$Feature, collapse = "+"))
   
-  # Re-train model with redcued feature list
+  # Retrain model with reduced feature list
   logr<-stats::glm(formular,data=training_data,family=quasibinomial)
   
   
@@ -115,28 +126,31 @@ logisticRegression <- function(){
                                    title=myTitle,
                                    plot=FALSE)
   
-  # if (plot==TRUE){
-  #   # Get importance of the input fields
-  #   importance<-randomForest::importance(rf,scale=TRUE,type=1)
-  #   importance<-importance[order(importance,decreasing=TRUE),,drop=FALSE]
-  #   
-  #   colnames(importance)<-"Strength"
-  #   
-  #   barplot(t(importance),las=2, border = 0,
-  #           cex.names =0.7,
-  #           main=myTitle)
-  #   
-  #   print(formattable::formattable(data.frame(importance)))
-  # }
-  print(measures)
+  print("End logistic regression model") 
   return(measures)
+} #endof logisticRegression()
+
+
+# ************************************************
+# Name      :   main() :
+# Purpose   :   Main entry point for logistic regression script
+#
+# INPUT     :   None
+#
+# OUTPUT    :   None
+#
+# ************************************************
+
+main<-function(){
   
-  print("End logistic regression model")  
-}
+  dataset <- mars_GetPreprocessedDataset(TRUE)
+  
+  results <-  kfold(dataset, 5, logisticRegression)
 
+  # Print k-folds measures means
+  NprintMeasures(results)
 
-
-
+} #endof main()
 
 
 
@@ -167,7 +181,7 @@ set.seed(123)
 print("MARS: LOGISTIC REGRESSION MODEL")
 
 # ************************************************
-logisticRegression()
+main()
 
 print("end")
 
