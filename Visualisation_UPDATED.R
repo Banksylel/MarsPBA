@@ -1,21 +1,21 @@
 # ************************************************
-# This work is licensed under a Creative Commons
-# Attribution-NonCommercial 4.0 International License.
-# ************************************************
 #  PRACTICAL BUSINESS ANALYTICS
 #  Mars Group
-# 16 OCTOBER 2019
+# 14 NOVEMBER 2020
 # UPDATE
-# 1.00      14/11/2020    Initial Version
+# 1.00      14/11/2020    Brian   Initial Version
+# 1.01      15/11/2020    Ryan    tweaks, and tidying
 # ************************************************
 # R Script For Data Visualization
-#  clears all objects in "global environment"
+#  clears all objects in "global environment", console and plots tab
 rm(list=ls())
+cat("\014")
+graphics.off()
 
 # ************************************************
 # Global Environment variables
 
-DATASET_FILENAME  <- "Churn.csv"          # Name of input dataset file
+DATASET_FILENAME  <- "telco-data.csv"          # Name of input dataset file
 
 
 # Define and then load the libraries used in this project
@@ -28,15 +28,7 @@ DATASET_FILENAME  <- "Churn.csv"          # Name of input dataset file
 # stats                  4.0.3
 # PerformanceAnalytics   2.0.4
 
-MYLIBRARIES<-c("outliers",
-               "corrplot",
-               "MASS",
-               "formattable",
-               "stats",
-               "PerformanceAnalytics",
-               "ggplot2",
-               "tidyverse",
-               "dplyr")
+
 #install.packages("tidyverse")
 library(ggplot2)
 #install.packages("dplyr")
@@ -62,7 +54,7 @@ library(ggcorrplot)
 #
 # Keeps all objects as local to this function
 # ************************************************
-dataset <- read.csv("Churn.csv")
+dataset <- read.csv(DATASET_FILENAME)
 churn_data <- dataset%>%
   count(Churn) %>%
   mutate(per = n / sum(n),
@@ -79,35 +71,35 @@ ggplot(churn_data, aes(x= reorder(Churn, -per), y= per)) +
 #Payment related visualizations
 #
 options(repr.plot.width = 18, repr.plot.height = 12)
-plot_grid(ggplot(dataset, aes(x= PaymentMethod, fill = Churn)) + theme_bw()+ geom_bar(stat= "count")+ geom_text(stat="count", aes(label=..count..), vjust=2)+ labs(y= "Churn count", title="Payment Method Churn rate"),
-          ggplot(dataset, aes(x= PaperlessBilling, fill = Churn)) + theme_bw()+ geom_bar(stat= "count")+ geom_text(stat="count", aes(label=..count..), vjust=2)+ labs(y= "Churn count", title="Paperless billing Churn rate"),
-          ggplot(dataset, aes(x= Contract, fill = Churn)) + theme_bw()+ geom_bar(stat= "count")+ geom_text(stat="count", aes(label=..count..), vjust=2)+ labs(y= "Churn count", title="Contract Churn rate"))
+plot_grid(ggplot(dataset, aes(x= PaymentMethod, fill = Churn)) + theme_bw()+ geom_bar(stat= "count", position="dodge")+ geom_text(stat="count", aes(label=..count..), vjust=2)+ labs(y= "Churn count", title="Payment Method Churn rate"),
+          ggplot(dataset, aes(x= PaperlessBilling, fill = Churn)) + theme_bw()+ geom_bar(stat= "count", position="dodge")+ geom_text(stat="count", aes(label=..count..), vjust=2)+ labs(y= "Churn count", title="Paperless billing Churn rate"),
+          ggplot(dataset, aes(x= Contract, fill = Churn)) + theme_bw()+ geom_bar(stat= "count", position="dodge")+ geom_text(stat="count", aes(label=..count..), vjust=2)+ labs(y= "Churn count", title="Contract Churn rate"))
           #scale_x_discrete(labels = function(x) str_wrap(x, width = 20), align = "h")
 #**********************************************************
 #Streaming related visualization
 options(repr.plot.width = 18, repr.plot.height = 12)
-plot_grid(ggplot(dataset, aes(x= StreamingMovies, fill = Churn)) + theme_bw()+geom_bar(stat= "count")+ geom_text(stat="count", aes(label=..count..), vjust=2)+labs(y= "Churn count", title="StreamingMovies Churn rate"),
-          ggplot(dataset, aes(x= StreamingTV, fill = Churn)) + theme_bw()+ geom_bar(stat= "count")+ geom_text(stat="count", aes(label=..count..), vjust=2)+ labs(y= "Churn count", title="StreamingTV"))
+plot_grid(ggplot(dataset, aes(x= StreamingMovies, fill = Churn)) + theme_bw()+geom_bar(stat= "count", position="dodge")+ geom_text(stat="count", aes(label=..count..), vjust=2)+labs(y= "Churn count", title="StreamingMovies Churn rate"),
+          ggplot(dataset, aes(x= StreamingTV, fill = Churn)) + theme_bw()+ geom_bar(stat= "count", position="dodge")+ geom_text(stat="count", aes(label=..count..), vjust=2)+ labs(y= "Churn count", title="StreamingTV"))
 #***********************************************************
 #Service description visualisations
 options(repr.plot.width = 18, repr.plot.height = 12)
-plot_grid(ggplot(dataset, aes(x= TechSupport, fill = Churn)) + theme_bw()+geom_bar(stat= "count")+ geom_text(stat="count", aes(label=..count..), vjust=2)+labs(y= "Churn count", title="TechSupport Churn rate"),
-          ggplot(dataset, aes(x= DeviceProtection, fill = Churn)) + theme_bw()+ geom_bar(stat= "count")+ geom_text(stat="count", aes(label=..count..), vjust=2)+ labs(y= "Churn count", title="DeviceProtection"),
-          ggplot(dataset, aes(x= OnlineBackup, fill = Churn)) + theme_bw()+ geom_bar(stat= "count")+ geom_text(stat="count", aes(label=..count..), vjust=2)+ labs(y= "Churn count", title="OnlineBackup"),
-          ggplot(dataset, aes(x= OnlineSecurity, fill = Churn)) + theme_bw()+ geom_bar(stat= "count")+ geom_text(stat="count", aes(label=..count..), vjust=2)+ labs(y= "Churn count", title="OnlineSecurity"),
-          ggplot(dataset, aes(x= InternetService, fill = Churn)) + theme_bw()+ geom_bar(stat= "count")+ geom_text(stat="count", aes(label=..count..), vjust=2)+ labs(y= "Churn count", title="InternetService"))
+plot_grid(ggplot(dataset, aes(x= TechSupport, fill = Churn)) + theme_bw()+geom_bar(stat= "count", position="dodge")+ geom_text(stat="count", aes(label=..count..), vjust=2)+labs(y= "Churn count", title="TechSupport Churn rate"),
+          ggplot(dataset, aes(x= DeviceProtection, fill = Churn)) + theme_bw()+ geom_bar(stat= "count", position="dodge")+ geom_text(stat="count", aes(label=..count..), vjust=2)+ labs(y= "Churn count", title="DeviceProtection"),
+          ggplot(dataset, aes(x= OnlineBackup, fill = Churn)) + theme_bw()+ geom_bar(stat= "count", position="dodge")+ geom_text(stat="count", aes(label=..count..), vjust=2)+ labs(y= "Churn count", title="OnlineBackup"),
+          ggplot(dataset, aes(x= OnlineSecurity, fill = Churn)) + theme_bw()+ geom_bar(stat= "count", position="dodge")+ geom_text(stat="count", aes(label=..count..), vjust=2)+ labs(y= "Churn count", title="OnlineSecurity"),
+          ggplot(dataset, aes(x= InternetService, fill = Churn)) + theme_bw()+ geom_bar(stat= "count", position="dodge")+ geom_text(stat="count", aes(label=..count..), vjust=2)+ labs(y= "Churn count", title="InternetService"))
 #************************************************************
 #Phonelines visualisations
 options(repr.plot.width = 18, repr.plot.height = 12)
-plot_grid(ggplot(dataset, aes(x= PhoneService, fill = Churn)) + theme_bw()+geom_bar(stat= "count")+ geom_text(stat="count", aes(label=..count..), vjust=2)+labs(y= "Churn count", title="PhoneService Churn rate"),
-          ggplot(dataset, aes(x= MultipleLines, fill = Churn)) + theme_bw()+geom_bar(stat= "count")+ geom_text(stat="count", aes(label=..count..), vjust=2)+labs(y= "Churn count", title="MultipleLines Churn rate"))
+plot_grid(ggplot(dataset, aes(x= PhoneService, fill = Churn)) + theme_bw()+geom_bar(stat= "count", position="dodge")+ geom_text(stat="count", aes(label=..count..), vjust=2)+labs(y= "Churn count", title="PhoneService Churn rate"),
+          ggplot(dataset, aes(x= MultipleLines, fill = Churn)) + theme_bw()+geom_bar(stat= "count", position="dodge")+ geom_text(stat="count", aes(label=..count..), vjust=2)+labs(y= "Churn count", title="MultipleLines Churn rate"))
 #************************************************************
 #Customer descriptor visualisations
 options(repr.plot.width = 18, repr.plot.height = 12)
-plot_grid(ggplot(dataset, aes(x= Dependents, fill = Churn)) + theme_bw()+geom_bar(stat= "count")+ geom_text(stat="count", aes(label=..count..), vjust=2)+labs(y= "Churn count", title="Dependents Churn rate"),
-          ggplot(dataset, aes(x= Partner, fill = Churn)) + theme_bw()+geom_bar(stat= "count")+ geom_text(stat="count", aes(label=..count..), vjust=2)+labs(y= "Churn count", title="Partner Churn rate"),
-          ggplot(dataset, aes(x= SeniorCitizen, fill = Churn)) + theme_bw()+geom_bar(stat= "count")+ geom_text(stat="count", aes(label=..count..), vjust=2)+labs(y= "Churn count", title="SeniorCitizen Churn rate"),
-          ggplot(dataset, aes(x= gender, fill = Churn)) + theme_bw()+geom_bar(stat= "count")+ geom_text(stat="count", aes(label=..count..), vjust=2)+labs(y= "Churn count", title="Gender Churn rate"))
+plot_grid(ggplot(dataset, aes(x= Dependents, fill = Churn)) + theme_bw()+geom_bar(stat= "count", position="dodge")+ geom_text(stat="count", aes(label=..count..), vjust=2)+labs(y= "Churn count", title="Dependents Churn rate"),
+          ggplot(dataset, aes(x= Partner, fill = Churn)) + theme_bw()+geom_bar(stat= "count", position="dodge")+ geom_text(stat="count", aes(label=..count..), vjust=2)+labs(y= "Churn count", title="Partner Churn rate"),
+          ggplot(dataset, aes(x= SeniorCitizen, fill = Churn)) + theme_bw()+geom_bar(stat= "count", position="dodge")+ geom_text(stat="count", aes(label=..count..), vjust=2)+labs(y= "Churn count", title="SeniorCitizen Churn rate"),
+          ggplot(dataset, aes(x= gender, fill = Churn)) + theme_bw()+geom_bar(stat= "count", position="dodge")+ geom_text(stat="count", aes(label=..count..), vjust=2)+labs(y= "Churn count", title="Gender Churn rate"))
 #************************************************************
 #Tenure density plot
 ggplot(dataset, aes(x= tenure, fill= Churn))+ geom_density(alpha= 0.5) +
@@ -121,18 +113,8 @@ ggplot(dataset, aes(x= MonthlyCharges, fill= Churn))+ geom_density(alpha= 0.5) +
 ggplot(dataset, aes(x= TotalCharges, fill= Churn))+ geom_density(alpha= 0.5) +
 labs(title = "TotalCharges density")
 #**********************************************************
-main<-function(){
-  print("Leaving main")
-  } #endof main()
-# ************************************************
-# This is where R starts execution
 
-# clears the console area
-cat("\014")
 
-# Loads the libraries
-library(pacman)
-pacman::p_load(char=MYLIBRARIES,install=TRUE,character.only=TRUE)
 
 #This [optionally] sets working directory
 #setwd("")
@@ -140,6 +122,5 @@ set.seed(123)
 print("Mars group")
 
 # ************************************************
-main()
 print("end")
 
