@@ -54,11 +54,16 @@ library(ggcorrplot)
 #
 # Keeps all objects as local to this function
 # ************************************************
+
 dataset <- read.csv(DATASET_FILENAME)
 churn_data <- dataset%>%
   count(Churn) %>%
   mutate(per = n / sum(n),
          per_label = paste0(round(per*100), "%"))
+
+#turns the values in the seniorCitizen field from 1 and 0 into yes and no, for the ease of reading the graphs
+dataset$SeniorCitizen <- factor(dataset$SeniorCitizen,levels = c(1,0), labels = c("Yes", "No"))
+
 
 #Churn Distribution graph
 ggplot(churn_data, aes(x= reorder(Churn, -per), y= per)) +
@@ -96,10 +101,10 @@ plot_grid(ggplot(dataset, aes(x= PhoneService, fill = Churn)) + theme_bw()+geom_
 #************************************************************
 #Customer descriptor visualisations
 options(repr.plot.width = 18, repr.plot.height = 12)
-plot_grid(ggplot(dataset, aes(x= Dependents, fill = Churn)) + theme_bw()+geom_bar(stat= "count", position="dodge")+ geom_text(stat="count", aes(label=..count..), vjust=2)+labs(y= "Churn count", title="Dependents Churn rate"),
+print(plot_grid(ggplot(dataset, aes(x= Dependents, fill = Churn)) + theme_bw()+geom_bar(stat= "count", position="dodge")+ geom_text(stat="count", aes(label=..count..), vjust=2)+labs(y= "Churn count", title="Dependents Churn rate"),
           ggplot(dataset, aes(x= Partner, fill = Churn)) + theme_bw()+geom_bar(stat= "count", position="dodge")+ geom_text(stat="count", aes(label=..count..), vjust=2)+labs(y= "Churn count", title="Partner Churn rate"),
           ggplot(dataset, aes(x= SeniorCitizen, fill = Churn)) + theme_bw()+geom_bar(stat= "count", position="dodge")+ geom_text(stat="count", aes(label=..count..), vjust=2)+labs(y= "Churn count", title="SeniorCitizen Churn rate"),
-          ggplot(dataset, aes(x= gender, fill = Churn)) + theme_bw()+geom_bar(stat= "count", position="dodge")+ geom_text(stat="count", aes(label=..count..), vjust=2)+labs(y= "Churn count", title="Gender Churn rate"))
+          ggplot(dataset, aes(x= gender, fill = Churn)) + theme_bw()+geom_bar(stat= "count", position="dodge")+ geom_text(stat="count", aes(label=..count..), vjust=2)+labs(y= "Churn count", title="Gender Churn rate")))
 #************************************************************
 #Tenure density plot
 ggplot(dataset, aes(x= tenure, fill= Churn))+ geom_density(alpha= 0.5) +
