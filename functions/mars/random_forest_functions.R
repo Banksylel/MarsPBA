@@ -3,36 +3,18 @@
 # Attribution-NonCommercial 4.0 International License.
 # ************************************************
 #  PRACTICAL BUSINESS ANALYTICS
-#  COM3018/COMM053
+#  COMM053 Mars Group
 #
-# Prof. Nick F Ryman-Tubb
-# The Surrey Business School
-# University of Surrey
-# GUILDFORD
-# Surrey GU2 7XH
-#
-# 16 OCTOBER 2019
+# 14 November 2020
 #
 # UPDATE
-# 1.00      15/2/2019    Initial Version
-# 1.01      25/2/2019    Updates for MANM module
-# 1.02      16/10/2019   COM3018 / COMM053 2019
-# 1.03      22/10/2019   Added PerformanceAnalytics as a required library
-# 1.04      12/10/2020   Updated for R 4.x
+# 1.00      14/11/20      Initial Version
 # ************************************************
-# R Script For lab 3
-
+# Random Forest Script
 #  clears all objects in "global environment"
 rm(list=ls())
-
 # ************************************************
 # Global Environment variables
-# - i.e. available to all functions
-# Good practice to place "constants" in named variables
-# I use UPPERCASE to identify these in my code
-
-
-
 # Define and then load the libraries used in this project
 # Library from CRAN     Version
 # pacman	               0.5.1
@@ -51,7 +33,6 @@ MYLIBRARIES<-c("outliers",
                "PerformanceAnalytics")
 
 # User defined functions are next
-
 FOREST_SIZE       <- 3000                 # Number of trees in the forest
 MAX_NODES <-  NULL
 MTRY <- 5
@@ -278,11 +259,8 @@ main<-function(){
   
 } #endof main()
 
-
-
 # ************************************************
 # This is where R starts execution
-
 # clears the console area
 cat("\014")
 
@@ -302,7 +280,7 @@ source("functions/mars/utility_functions.R")
 
 set.seed(123)
 
-print("WELCOME TO LAB 3: PRACTICAL BUSINESS ANALYTICS")
+print("Mars Group")
 
 # ************************************************
 main()
