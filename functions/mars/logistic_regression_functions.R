@@ -61,11 +61,9 @@ getLRClassifications<-function(trainedModel,
   test_inputs<-testDataset[-positionClassOutput]
   
   # Get probabilities of being class 1 from the classifier
-  testPredictedClassProbs<-predict(trainedModel,test_inputs, type="response")
+  test_predictedProbs<-predict(trainedModel,test_inputs, type="response")
 
-  # Get the probabilities for classifying churners
-  test_predictedProbs<-testPredictedClassProbs
-  
+
   #test data: vector with just the expected output class
   test_expected<-testDataset[,positionClassOutput]
   
@@ -118,6 +116,7 @@ logisticRegression <- function(training_data,testing_data, plot=TRUE, ...){
   # Retrain model with reduced feature list
   logr<-stats::glm(formular,data=training_data,family=quasibinomial)
   
+
   
   # ************************************************
   # Use the trained model with the test dataset
