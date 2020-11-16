@@ -40,7 +40,7 @@ kfold <-  function(dataset, k, FUN,...){
     test <-  dropFields(test, c("foldId"))
     
     result <-  FUN(train,test, plot=FALSE, ...)
-    
+
     results <-rbind(results, data.frame(result))
   }
   

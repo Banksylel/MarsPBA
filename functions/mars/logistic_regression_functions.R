@@ -12,6 +12,7 @@
 #   UPDATE
 #   1.00      11/11/2020    Chris Jennings    Initial Version
 #   1.01      15/11/2020    Chris Jennings    Adopt k-folds
+#   1.02      16/11/2020    Chris Jennings    Fixed bugs
 
 
 # Define and then load the libraries used in this project
@@ -88,14 +89,49 @@ getLRClassifications<-function(trainedModel,
 #
 # ************************************************
 
-logisticRegression <- function(training_data,testing_data, plot=TRUE, ...){
+logisticRegression <- function(training_data,testing_data, formular=formular, plot=TRUE, ...){
   print("Begin logistic regression model")
 
-  # First pass - determine importance of features
-  formular<-myModelFormula(dataset = training_data, fieldNameOutput = OUTPUT_FIELD)
+  # Train model with reduced feature list
   logr<-stats::glm(formular,data=training_data,family=quasibinomial)
+
   
-  # Output of strengths
+  # ************************************************
+  # Use the trained model with the test dataset
+  measures<-getLRClassifications(trainedModel = logr,
+                                   testDataset = testing_data,
+                                   title=myTitle,
+                                   plot=FALSE)
+  
+  
+  
+  
+  print("End logistic regression model") 
+  return(measures)
+} #endof logisticRegression()
+
+
+
+# ************************************************
+# Name      :   reduceFeatures() :
+# Purpose   :   Train logistic regression model on entire dataset to
+#           :   determine feature importance.
+#               Remove non-contributing features and generate model formula.
+#               Plot importance chart.
+#
+# INPUT     :   data frame - dataset
+#
+# OUTPUT    :   Model formula with reduced feature set.
+#
+# ************************************************
+
+reduceFeatures<-function(dataset) {
+  
+  # Determine importance of features
+  formular<-myModelFormula(dataset = dataset, fieldNameOutput = OUTPUT_FIELD)
+  logr<-stats::glm(formular,data=dataset,family=quasibinomial)
+  
+  # Plot feature importance chart
   importance<-as.data.frame(caret::varImp(logr, scale = TRUE))
   row.names(importance)<-gsub("[[:punct:][:blank:]]+", "", row.names(importance))
   barplot(t(importance[order(-importance$Overall),,drop=FALSE]),
@@ -109,25 +145,13 @@ logisticRegression <- function(training_data,testing_data, plot=TRUE, ...){
   features<-data.frame(gsub("[[:blank:]]+", "", row.names(importance)), importance$Overall)
   colnames(features)<-c("Feature", "Overall")
   features<-features[order(-importance$Overall),]
-
+  
   # Reconstruct model formula
   formular<-paste(OUTPUT_FIELD, "~", paste(features$Feature, collapse = "+"))
   
-  # Retrain model with reduced feature list
-  logr<-stats::glm(formular,data=training_data,family=quasibinomial)
+  return(formular)
   
-
-  
-  # ************************************************
-  # Use the trained model with the test dataset
-  measures<-getLRClassifications(trainedModel = logr,
-                                   testDataset = testing_data,
-                                   title=myTitle,
-                                   plot=FALSE)
-  
-  print("End logistic regression model") 
-  return(measures)
-} #endof logisticRegression()
+}
 
 
 # ************************************************
@@ -142,9 +166,14 @@ logisticRegression <- function(training_data,testing_data, plot=TRUE, ...){
 
 main<-function(){
   
+  # Acquire pre-processed data
   dataset <- mars_GetPreprocessedDataset(TRUE)
   
-  results <-  kfold(dataset, 5, logisticRegression)
+  # Remove redundant features from model
+  formular<-reduceFeatures(dataset)
+  
+  # RUn k-folds
+  results <-  kfold(dataset, 5, logisticRegression, formular)
 
   # Print k-folds measures means
   NprintMeasures(results)
