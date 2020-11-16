@@ -42,10 +42,10 @@ MYLIBRARIES<-c("outliers",
 # Name      :   getLRClassifications() :
 # Purpose   :   Determine "measures" when using optimal threshold
 #
-# INPUT     :   glm object - trainedModel
-#           :   data frame - testDataset
-#           :   Text - Optional title
-#           :   Boolean - Enable plots
+# INPUT     :   glm object    trainedModel
+#           :   data frame    testDataset
+#           :   Text          Optional title
+#           :   Boolean       Enable plots
 #
 # OUTPUT    :   measures - model performance metrics
 #
@@ -81,11 +81,11 @@ getLRClassifications<-function(trainedModel,
 # Name      :   logisticRegression() :
 # Purpose   :   Train logistic regression model
 #
-# INPUT     :   data frame - training_data
-#           :   data frame - testing_data
-#           :   Boolean - plot - Enable plots
+# INPUT     :   data frame    training_data
+#           :   data frame    testing_data
+#           :   Boolean       plot - Enable plots
 #
-# OUTPUT    :   measures - model performance metrics
+# OUTPUT    :   measures      Model performance metrics
 #
 # ************************************************
 
@@ -104,8 +104,6 @@ logisticRegression <- function(training_data,testing_data, formular=formular, pl
                                    plot=FALSE)
   
   
-  
-  
   print("End logistic regression model") 
   return(measures)
 } #endof logisticRegression()
@@ -117,9 +115,8 @@ logisticRegression <- function(training_data,testing_data, formular=formular, pl
 # Purpose   :   Train logistic regression model on entire dataset to
 #           :   determine feature importance.
 #               Remove non-contributing features and generate model formula.
-#               Plot importance chart.
 #
-# INPUT     :   data frame - dataset
+# INPUT     :   data frame    dataset
 #
 # OUTPUT    :   Model formula with reduced feature set.
 #
@@ -130,15 +127,6 @@ reduceFeatures<-function(dataset) {
   # Determine importance of features
   formular<-myModelFormula(dataset = dataset, fieldNameOutput = OUTPUT_FIELD)
   logr<-stats::glm(formular,data=dataset,family=quasibinomial)
-  
-  # Plot feature importance chart
-  importance<-as.data.frame(caret::varImp(logr, scale = TRUE))
-  row.names(importance)<-gsub("[[:punct:][:blank:]]+", "", row.names(importance))
-  barplot(t(importance[order(-importance$Overall),,drop=FALSE]),
-          las=2, 
-          border = 3, 
-          cex.names = 0.8, 
-          legend.text = "Logistic regression feature importance")
   
   # Exclude features of no importance - avoids rank deficiency issues
   importance<-as.data.frame(caret::varImp(logr, scale = TRUE))
@@ -151,6 +139,58 @@ reduceFeatures<-function(dataset) {
   
   return(formular)
   
+}
+
+# ************************************************
+# Name      :   retention() :
+# Purpose   :   Cost of retention plot - discount vs churn
+#
+# INPUT     :   glm object    trainedModel
+#           :   threshold     Determined by k-fold validation
+#           :   dataset       Pre-processed dataset
+#           :   title         Title for plot       
+#
+# OUTPUT    :   None
+#
+# ************************************************
+
+retention<-function(trainedModel, threshold, dataset, title){
+
+  positionClassOutput=which(names(dataset)==OUTPUT_FIELD)
+
+  # Dataframe with with just input fields
+  inputs<-dataset[-positionClassOutput]
+
+  # Separate monthly charge column
+  monthlyCharge<-dataset$MonthlyCharges
+  discountFactorVec<-vector()
+  churnRateVec<-vector()
+  
+  # It's a straight line for linear models so can plot with two endpoints only
+  # Include range for x values for possible later use with non-linear models.
+  for (discountFactor in seq(from=0, to=100, by=100)) 
+  {
+    discMonthlyCharge<-(100 - discountFactor) * monthlyCharge / 100
+    inputs$MonthlyCharges<-discMonthlyCharge
+    probs<-predict(trainedModel,inputs, type="response")
+    churnRateVec<-c(churnRateVec, 100 * sum(probs>threshold) / length(probs))
+    discountFactorVec<-c(discountFactorVec,discountFactor)
+    print(paste(discountFactorVec, " ", churnRateVec))
+  }
+  xRange<-range(0,100)
+  yRange<-range(0,100)
+  plot(discountFactorVec,  churnRateVec, 
+       axes=TRUE, 
+       lwd = 5,
+       col = "green",
+       main = title,
+       xlim = xRange, 
+       ylim = yRange, 
+       type = "l", 
+       xlab = "Discount %", 
+       ylab = "Churn rate %")
+
+  print("End")
 }
 
 
@@ -172,11 +212,32 @@ main<-function(){
   # Remove redundant features from model
   formular<-reduceFeatures(dataset)
   
-  # RUn k-folds
+  # Run k-folds
   results <-  kfold(dataset, 5, logisticRegression, formular)
 
   # Print k-folds measures means
   NprintMeasures(results)
+  
+  # Train new model for further analysis
+  logr<-stats::glm(formular,data=dataset,family=quasibinomial)
+  
+  # Plot effect of discounts
+  threshold<-results["threshold"]
+  retention(trainedModel = logr, threshold = threshold, 
+            dataset = dataset, 
+            title = "Monthly Charge Discount vs Churn Rate")
+  
+  # Plot feature importance chart
+  importance<-as.data.frame(caret::varImp(logr, scale = TRUE))
+  row.names(importance)<-gsub("[[:punct:][:blank:]]+", "", row.names(importance))
+  barplot(t(importance[order(-importance$Overall),,drop=FALSE]),
+          las=2, 
+          border = 3, 
+          cex.names = 0.8, 
+          legend.text = "Logistic regression feature importance")
+  
+  print("End")
+  
 
 } #endof main()
 
