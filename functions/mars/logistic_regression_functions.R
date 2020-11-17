@@ -175,17 +175,19 @@ retention<-function(trainedModel, threshold, dataset, title){
     probs<-predict(trainedModel,inputs, type="response")
     churnRateVec<-c(churnRateVec, 100 * sum(probs>threshold) / length(probs))
     discountFactorVec<-c(discountFactorVec,discountFactor)
-    print(paste(discountFactorVec, " ", churnRateVec))
   }
-  xRange<-range(0,100)
+  xRange<-range(0,100,10)
   yRange<-range(0,100)
+  grid(nx = 10, ny = 10, col = "lightgray", lty = "dotted",
+       lwd = par("lwd"))
   plot(discountFactorVec,  churnRateVec, 
        axes=TRUE, 
        lwd = 5,
-       col = "green",
+       col = "#69b3a2",
        main = title,
        xlim = xRange, 
        ylim = yRange, 
+       panel.first = grid(),
        type = "l", 
        xlab = "Discount %", 
        ylab = "Churn rate %")
@@ -212,7 +214,7 @@ main<-function(){
   # Remove redundant features from model
   formular<-reduceFeatures(dataset)
   
-  # Run k-folds
+  # Run k-folds validation
   results <-  kfold(dataset, 5, logisticRegression, formular)
 
   # Print k-folds measures means
@@ -230,11 +232,15 @@ main<-function(){
   # Plot feature importance chart
   importance<-as.data.frame(caret::varImp(logr, scale = TRUE))
   row.names(importance)<-gsub("[[:punct:][:blank:]]+", "", row.names(importance))
+  par(mar=c(3,12,3,2)+.1)
   barplot(t(importance[order(-importance$Overall),,drop=FALSE]),
-          las=2, 
-          border = 3, 
+          las=1, 
+          border = NA, 
           cex.names = 0.8, 
-          legend.text = "Logistic regression feature importance")
+          horiz = TRUE,
+          col="#69b3a2",
+          xlim = c(0,10),
+          main = "Logistic regression feature importance")
   
   print("End")
   
