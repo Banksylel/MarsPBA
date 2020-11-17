@@ -33,11 +33,6 @@ findOptimalNetworkParameter <- function(dataset, testName, testSet, kfolds){
   stopping  <- DEEP_STOPPING   
   tolerance <- DEEP_TOLERANCE
   activation <-  DEEP_ACTIVATION
-  
-  
-  #Assign the folds for testing and shuffle
-  dataset <- PREPROCESSING_stratDataset(dataset, kfolds)
-  dataset <- dataset[order(runif(nrow(dataset))),]
 
   
   print(paste("Running tests to determine optimal value for",testName))
@@ -55,23 +50,10 @@ findOptimalNetworkParameter <- function(dataset, testName, testSet, kfolds){
       tolerance <- testSet[i]
     }
 
-    results <-  data.frame()
-    #Kfold validate for neural specific
-    for(k in 1:kfolds){
-      train <-  subset(dataset, (dataset$foldId!=k))
-      test <-  dataset[dataset$foldId == k,]
-      train <-  dropFields(train, c("foldId"))
-      test <-  dropFields(test, c("foldId"))
-      result <-  deepNeural(train, test, hidden=hiddenNodes, stopping_rounds=stopping, stopping_tolerance=tolerance , activation=activation, plot=FALSE)
-      results <-rbind(results, data.frame(result))
-    }
-    
-    avgs <-  colMeans(results)
-    avgs[1:4] <-  as.integer(round(avgs[1:4]))
-    avgs[5:13] <-  round(avgs[5:13], digits=3)
+    results <-  kfold(dataset, 5, deepNeural, hidden=hiddenNodes, stopping_rounds=stopping, activation=activation, stopping_tolerance=tolerance)
     
     
-    results <-  c(hidden=hiddenNodes, stopping_rounds=stopping, stopping_tolerance=tolerance , activation=activation, avgs)
+    results <-  c(hidden=hiddenNodes, stopping_rounds=stopping, stopping_tolerance=tolerance , activation=activation, results)
     
     if(i==1){
       allResults<-data.frame(ParamTest=unlist(results))
@@ -95,7 +77,6 @@ findAllOptimalNetworkParameters <- function(dataset, k){
     hiddenNodesTests[[i]] <- c(i+2,i+2)
   }
   
-  print(hiddenNodesTests)
   stoppingTests     <- 2:5   
   toleranceTests <- c(0.005, 0.08, 0.01, 0.12, 0.15, 0.18, 0.2)
   activationTests <- c("Tanh", "TanhWithDropout", "Rectifier", "RectifierWithDropout", "Maxout", "MaxoutWithDropout")

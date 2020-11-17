@@ -80,6 +80,9 @@ mars_GetPreprocessedDataset<-function(scaleflag = TRUE, printflag = FALSE){
   # Read data from file
   dataset<-NreadDataset(DATASET_FILENAME)
   
+  print("aah")
+  print(getMode(dataset$tenure))
+  
   
   #*************************************************
   #Return all rows that have churned. There are 1869 rows
@@ -89,11 +92,13 @@ mars_GetPreprocessedDataset<-function(scaleflag = TRUE, printflag = FALSE){
   #Shuffle these rows and select 1869 rows.
   set.seed(42)
   n_shuffled <- n[sample(1:nrow(n)), ]
-  n_final <- n_shuffled[1:1869, ]  
+  n_final <- n_shuffled[1:nrow(y), ]  
   #Return balanced and shuffled dataset
   yandn <- rbind(y, n_final)
   dataset <- yandn[sample(1:nrow(yandn)), ]
   
+  p<-ggplot(dataset, aes(x=tenure, y = TotalCharges)) + geom_point()
+  print(p)
   
   
   # ************************************************
@@ -107,6 +112,8 @@ mars_GetPreprocessedDataset<-function(scaleflag = TRUE, printflag = FALSE){
   # ************************************************
   # Set TotalCharges to zero where tenure is zero
   dataset[which(dataset$tenure==0),"TotalCharges"]<--0
+  
+
   
   # ************************************************  
   # One-hot encoding special cases
@@ -156,10 +163,9 @@ mars_GetPreprocessedDataset<-function(scaleflag = TRUE, printflag = FALSE){
   # ************************************************
   # This is a sub-set frame of just the ordinal fields
   ordinals<-dataset[,which(field_types1==TYPE_ORDINAL)]
-  
+
   # Replace outlying ordinals with mean values
   ordinals<-NPREPROCESSING_outlier(ordinals=ordinals,confidence=OUTLIER_CONF)
-  
   if(scaleflag==TRUE){
     # ************************************************
     # z-scale
@@ -213,7 +219,17 @@ mars_GetPreprocessedDataset<-function(scaleflag = TRUE, printflag = FALSE){
   print("End")
   
   
+
+  
+
+  
   return(combinedML)
   
 } #endof main()
+
+getMode <- function(v) {
+  uniqv <- unique(v)
+  uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+
 
