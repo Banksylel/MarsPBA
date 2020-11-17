@@ -77,7 +77,6 @@ mars_GetPreprocessedDataset<-function(scaleflag = TRUE, printflag = FALSE){
   # Read data from file
   dataset<-NreadDataset(DATASET_FILENAME)
   
-  print("aah")
   print(getMode(dataset$tenure))
   
   

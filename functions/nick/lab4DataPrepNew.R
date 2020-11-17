@@ -446,8 +446,6 @@ NPREPROCESSING_outlier<-function(ordinals,confidence){
       
       #070819NRT If confidence is positive then replace values with their means, otherwise do nothing
       if (confidence>0){
-        print("mean")
-        print(ordinals[field]$mean)
         outliersGone<-rm.outlier(ordinals[,field],fill=TRUE)
         sorted<-unique(sort(outliersGone,decreasing=TRUE))
         #NplotOutliers(sorted,vector(),colnames(ordinals)[field])
