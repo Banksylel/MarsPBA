@@ -69,13 +69,13 @@ plotKValueTests <- function(dataset){
 }
 
 
-calculateClusterChurnRatios <- function(dataset, kmeansModel){
+visualiseClusters <- function(dataset, kmeansModel){
   
   K <-  length(kmeansModel$size)
   print(K)
   
   for(i in 1:K){
-    cluster<-dataset[which(kmeansModel$cluster==i),]
+    cluster<-dataset[which(kmeansModel$cluster==i),] 
     
     numChurned <- nrow(cluster[which(cluster$Churn==1),])
     numRetained <-  nrow(cluster[which(cluster$Churn==0),])
@@ -87,10 +87,51 @@ calculateClusterChurnRatios <- function(dataset, kmeansModel){
     
     print(paste("Cluster ",i,": Churn ratio: ", churnRatio ,delim=""))
     
+    numMonthly <- nrow(cluster[which(cluster$Contract_Monthtomonth==1),])
+    numYearly <- nrow(cluster[which(cluster$Contract_Oneyear==1),])
+    numTwoYearly <- nrow(cluster[which(cluster$Contract_Twoyear==1),])
+    
+    print(paste("Contract types: Monthly:", numMonthly, ", One year", numYearly, "Two year", numTwoYearly ,delim=""))
+    print(paste("Cluster ",i,": Retained: ", numRetained ,delim=""))
+    
+    total <-  nrow(cluster)
+    
+    print(paste("Breakdown: Monthly:", numMonthly/total, ", One year", numYearly/total, "Two year", numTwoYearly/total ,delim=""))
+    
+    
+    
+    
+    
+    
+    p<-ggplot(cluster, aes(x=tenure)) + geom_histogram(color = "black", binwidth = 1, fill="white", alpha=0.5)+
+      xlim(0, 70)+
+      ylim(0, 200)+
+      ggtitle(paste("Tenure histogram for cluster",i))
+    print(p)
+    p<-ggplot(cluster, aes(x=MonthlyCharges)) + geom_histogram(color = "pink", binwidth=3, fill="white", alpha=0.5)+
+      xlim(0, 130)+
+      ylim(0, 150)+
+      ggtitle(paste("Monthly charges histogram for cluster",i))
+    print(p)
+    p<-ggplot(cluster, aes(x=TotalCharges)) + geom_histogram(color = "blue", binwidth = 200, fill="white", alpha=0.5)+
+      xlim(0, 7000)+
+      ylim(0, 200)+
+      ggtitle(paste("Total charges histogram for cluster",i))
+    print(p)
+    
+    
+    
   }
   
+  p<-ggplot(dataset, aes(x=tenure, y = MonthlyCharges)) + geom_point(color = factor(kmeansModel$cluster))
+  print(p)
+  
+  p<-ggplot(dataset, aes(x=tenure, y = TotalCharges)) + geom_point(color = factor(kmeansModel$cluster))
+  print(p)
+  
+  print(p)
+  
 }
-
 
 
 ######## Main Function ########
@@ -122,7 +163,7 @@ main<-function(){
   
   originalDataset <- mars_GetPreprocessedDataset(scaleflag = FALSE, printflag=FALSE)
   
-  print(calculateClusterChurnRatios(originalDataset,modelKmeans))
+  print(visualiseClusters(originalDataset,modelKmeans))
   
 
  
