@@ -27,7 +27,7 @@
 
 
 #  clears all objects in "global environment"
-rm(list=ls())
+#rm(list=ls())
 
 MYLIBRARIES<-c("outliers",
                "corrplot",
@@ -90,7 +90,6 @@ getLRClassifications<-function(trainedModel,
 # ************************************************
 
 logisticRegression <- function(training_data,testing_data, formular=formular, plot=TRUE, ...){
-  print("Begin logistic regression model")
 
   # Train model with reduced feature list
   logr<-stats::glm(formular,data=training_data,family=quasibinomial)
@@ -104,7 +103,6 @@ logisticRegression <- function(training_data,testing_data, formular=formular, pl
                                    plot=FALSE)
   
   
-  print("End logistic regression model") 
   return(measures)
 } #endof logisticRegression()
 
@@ -168,7 +166,7 @@ retention<-function(trainedModel, threshold, dataset, title){
   
   # It's a straight line for linear models so can plot with two endpoints only
   # Include range for x values for possible later use with non-linear models.
-  for (discountFactor in seq(from=0, to=100, by=100)) 
+  for (discountFactor in seq(from=0, to=100, by=10)) 
   {
     discMonthlyCharge<-(100 - discountFactor) * monthlyCharge / 100
     inputs$MonthlyCharges<-discMonthlyCharge
@@ -192,8 +190,17 @@ retention<-function(trainedModel, threshold, dataset, title){
        xlab = "Discount %", 
        ylab = "Churn rate %")
 
-  print("End")
 }
+
+
+createLogisticRegressionModel <- function(dataset, print=FALSE){
+  # Remove redundant features from model
+  formular<-reduceFeatures(dataset)
+  logr<-stats::glm(formular,data=dataset,family=quasibinomial)
+  
+  return(logr)
+  
+} 
 
 
 # ************************************************
@@ -206,10 +213,8 @@ retention<-function(trainedModel, threshold, dataset, title){
 #
 # ************************************************
 
-main<-function(){
+evaluateLogisticRegressionModel<-function(dataset){
   
-  # Acquire pre-processed data
-  dataset <- mars_GetPreprocessedDataset(TRUE)
   
   # Remove redundant features from model
   formular<-reduceFeatures(dataset)
@@ -217,17 +222,17 @@ main<-function(){
   # Run k-folds validation
   results <-  kfold(dataset, 5, logisticRegression, formular)
 
-  # Print k-folds measures means
-  NprintMeasures(results)
+  # # Print k-folds measures means
+  # NprintMeasures(results)
   
-  # Train new model for further analysis
-  logr<-stats::glm(formular,data=dataset,family=quasibinomial)
-  
-  # Plot effect of discounts
-  threshold<-results["threshold"]
-  retention(trainedModel = logr, threshold = threshold, 
-            dataset = dataset, 
-            title = "Monthly Charge Discount vs Churn Rate")
+  # # Train new model for further analysis
+   logr<-stats::glm(formular,data=dataset,family=quasibinomial)
+  # 
+  # # Plot effect of discounts
+  # threshold<-results["threshold"]
+  # retention(trainedModel = logr, threshold = threshold, 
+  #           dataset = dataset, 
+  #           title = "Monthly Charge Discount vs Churn Rate")
   
   # Plot feature importance chart
   importance<-as.data.frame(caret::varImp(logr, scale = TRUE))
@@ -242,9 +247,8 @@ main<-function(){
           xlim = c(0,10),
           main = "Logistic regression feature importance")
   
-  print("End")
-  
 
+  return(results)
 } #endof main()
 
 
@@ -254,7 +258,7 @@ main<-function(){
 # This is where R starts execution
 
 # clears the console area
-cat("\014")
+#cat("\014")
 
 # Loads the libraries
 library(pacman)
@@ -271,12 +275,5 @@ source("functions/nick/lab4DataPrepNew.R")
 source("functions/nick/lab3DataPrep.R")
 source("functions/mars/utility_functions.R")
 
-set.seed(123)
 
-print("MARS: LOGISTIC REGRESSION MODEL")
-
-# ************************************************
-main()
-
-print("end")
 

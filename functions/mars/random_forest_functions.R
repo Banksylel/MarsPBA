@@ -23,7 +23,7 @@
 # R Script For lab 3
 
 #  clears all objects in "global environment"
-rm(list=ls())
+#rm(list=ls())
 
 # ************************************************
 # Global Environment variables
@@ -52,9 +52,9 @@ MYLIBRARIES<-c("outliers",
 
 # User defined functions are next
 
-FOREST_SIZE       <- 500                 # Number of trees in the forest
+FOREST_SIZE       <- 3000                 # Number of trees in the forest
 MAX_NODES <-  20
-MTRY <- 2
+MTRY <- 5
 
 
 
@@ -225,6 +225,26 @@ randomForest<-function(train,test,plot=TRUE, forestSize=FOREST_SIZE, maxNodes=MA
 } #endof randomForest()
 
 
+createRandomForestModel <- function(dataset,print=FALSE){
+  positionClassOutput<-which(names(dataset)==OUTPUT_FIELD)
+  
+  # train data: dataframe with the input fields
+  train_inputs<-dataset[-positionClassOutput]
+  
+  # train data: vector with the expedcted output
+  train_expected<-dataset[,positionClassOutput]
+  
+  rf<-randomForest::randomForest(train_inputs,
+                                 factor(train_expected),
+                                 ntree=FOREST_SIZE ,
+                                 importance=TRUE,
+                                 maxnodes=MAX_NODES,
+                                 mtry=MTRY)
+  
+  return(rf)
+  
+}
+
 
 # ************************************************
 # main() :
@@ -236,39 +256,24 @@ randomForest<-function(train,test,plot=TRUE, forestSize=FOREST_SIZE, maxNodes=MA
 #
 # Keeps all objects as local to this function
 # ************************************************
-main<-function(){
+evaluateRandomForestModel<-function(dataset){
   
   keeps <-  c("TotalCharges", "MonthlyCharges", "tenure", "Contract_Monthtomonth", "InternetService_Fiber", "InternetService_TechSupport", "Contract_Twoyear", "Churn")
   
-  dataset <- mars_GetPreprocessedDataset(FALSE)
-  
   dataset <-  keepFields(dataset, keeps)
+
   
-  ##UNCOMMENT OUT TO RUN, TAKES A LONG TIME. 
-  #optimals <-  findAllOptimalForestParameters(dataset)
-  
-  
-  results <-  kfold(dataset, 5, randomForest)
-  
-  
-  print(results)
+  results <-  kfold(dataset, 5, randomForest, plot=FALSE)
+
+  return(results)
   
 } #endof main()
 
 
 
-# ************************************************
-# This is where R starts execution
-
-# clears the console area
-cat("\014")
-
 # Loads the libraries
 library(pacman)
 pacman::p_load(char=MYLIBRARIES,install=TRUE,character.only=TRUE)
-
-#This [optionally] sets working directory
-#setwd("")
 
 #Load additional R script files provide for this lab
 source("functions/mars/data_pre_processing_pipeline.R")
@@ -276,13 +281,4 @@ source("functions/mars/data_pre_processing_functions.R")
 source("functions/nick/4labfunctions.R")
 source("functions/nick/lab4DataPrepNew.R")
 source("functions/mars/utility_functions.R")
-
-set.seed(123)
-
-print("WELCOME TO LAB 3: PRACTICAL BUSINESS ANALYTICS")
-
-# ************************************************
-main()
-
-print("end")
 

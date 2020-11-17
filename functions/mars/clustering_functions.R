@@ -12,11 +12,6 @@
 #   1.00      11/11/2020    Chris Endacott    Initial Version
 # *************************************************************
 
-#  clears all objects in "global environment"
-rm(list=ls())
-
-# ************************************************
-
 
 KFOLDS           <- 5
 
@@ -145,12 +140,8 @@ visualiseClusters <- function(dataset, kmeansModel){
 # OUTPUT      :   None
 #
 # ************************************************
-main<-function(){
-  
-  # Read data from file
-  dataset <- mars_GetPreprocessedDataset(printflag=FALSE)
-  
-  
+createKmeansModel<-function(dataset){
+
   #plotKValueTests(dataset)
   
 
@@ -168,25 +159,9 @@ main<-function(){
 
  
   # The dataset for ML information
-  print("End")
+  return(modelKmeans)
   
 } #endof main()
-
-# ************************************************
-# This is where R starts execution
-
-# Automatically release memory
-gc()
-
-# Clear plots and other graphics in RStudio output
-if(!is.null(dev.list())) dev.off()
-graphics.off()
-
-# Clear all warning messages
-assign("last.warning", NULL, envir = baseenv())
-
-# Clears the RStudio console area
-cat("\014")
 
 # If library not already on your computer this will download and
 # install the library. Each library is activated.
@@ -200,13 +175,4 @@ source("functions/nick/lab2functions.R")   # From Prof Nick's lab
 source("functions/mars/data_pre_processing_functions.R")
 source("functions/mars/data_pre_processing_pipeline.R")
 
-# Reset the pseudo-random number generator to start at the same point
-set.seed(123)
 
-print("PBA TEAM MARS: DATA PRE-PROCESSING PIPELINE")
-
-# ************************************************
-# Call the main function
-main()
-
-print("end")

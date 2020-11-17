@@ -148,12 +148,24 @@ deepNeural<-function(train,test,hidden=DEEP_HIDDEN, stopping_rounds=DEEP_STOPPIN
 } #endof deepNeural()
 
 
-main <- function(){
+createNeuralNetworkModel <- function(dataset,print=FALSE){
   N_DEEP_Initialise()
   
-  keeps <-  c("TotalCharges", "MonthlyCharges", "tenure", "Contract_Monthtomonth","PaymentMethod_Automatic" ,"Churn")
+  model <-  N_DEEP_TrainClassifier(train=dataset,
+                                   fieldNameOutput=OUTPUT_FIELD,
+                                   hidden=DEEP_HIDDEN,
+                                   stopping_rounds=DEEP_STOPPING,
+                                   stopping_tolerance=DEEP_TOLERANCE,
+                                   activation=DEEP_ACTIVATION,
+                                   reproducible=DEEP_REPRODUCABLE)
+  return(model)
   
-  dataset <- mars_GetPreprocessedDataset(FALSE)
+  
+}
+
+evaluateNeuralNetworkModel <- function(dataset, printflag=FALSE){
+  N_DEEP_Initialise()
+  #keeps <-  c("TotalCharges", "MonthlyCharges", "tenure", "Contract_Monthtomonth", "InternetService_Fiber", "InternetService_TechSupport", "Contract_Twoyear", "PaymentMethod_Automatic", "InternetService_NoInternetService", "InternetService_TechSupport","InternetService_OnlineSecurity","Churn")
   
   #dataset <-  keepFields(dataset, keeps)
   
@@ -161,8 +173,8 @@ main <- function(){
   #optimals <-  findAllOptimalNetworkParameters(dataset,5)
   
   
-  results <-  kfold(dataset, 5, deepNeural)
-  print(results)
+  results <-  kfold(dataset, 5, deepNeural, plot=printflag)
+  return(results)
 
 
 }
@@ -172,8 +184,6 @@ source("functions/mars/data_pre_processing_functions.R")
 source("functions/nick/4labfunctions.R")
 source("functions/nick/lab4DataPrepNew.R")
 source("functions/mars/utility_functions.R")
-
-main()
 
 
 
