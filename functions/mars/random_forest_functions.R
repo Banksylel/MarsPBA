@@ -50,8 +50,6 @@ MYLIBRARIES<-c("outliers",
                "stats",
                "PerformanceAnalytics")
 
-
-
 # User defined functions are next
 
 FOREST_SIZE       <- 500                 # Number of trees in the forest
