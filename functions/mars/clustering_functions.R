@@ -94,9 +94,9 @@ visualiseClusters <- function(dataset, kmeansModel){
     
     
     
-    info <- summary(cluster)
-    means <-  unlist(info[4,])
-    results <-rbind(results, data.frame(means))
+    #info <- summary(cluster)
+    #means <-  unlist(info[4,])
+    #results <-rbind(results, data.frame(means))
     
     
     p<-ggplot(cluster, aes(x=tenure)) + geom_histogram(color = "black", binwidth = 1, fill="white", alpha=0.5)+
@@ -123,7 +123,8 @@ visualiseClusters <- function(dataset, kmeansModel){
   print(p)
   
   p<-ggplot(dataset, aes(x=tenure, y = TotalCharges)) + geom_point(color = factor(kmeansModel$cluster))
-  print(p)
+  print(p) + theme(legend.position="right")
+
   
   print(p)
   
