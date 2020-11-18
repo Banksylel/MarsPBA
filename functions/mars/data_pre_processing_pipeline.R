@@ -12,7 +12,6 @@
 #   1.00      08/11/2020    Chris Jennings    Initial Version
 #   1.01      08/11/2020    Brian Nyathi      + Balancing of dataset
 #   1.02      09/11/2020    Ryan Banks        Called functions for splitting the dataset with k-fold cross validation
-#   1.03      11/11/2020    Chris Jennings    Source all functions files recursively.
 # *************************************************************
 
 # ************************************************
@@ -59,18 +58,16 @@ MYLIBRARIES<-c("outliers",
 
 
 
-######## Main Function ########
 
 # ************************************************
-# main() :
-# Main entry point
+# mars_GetPreprocessedDataset() :
 #
-# INPUT       :   None
+# INPUT       :   printflag - optionally display results
 #
-# OUTPUT      :   None
+# OUTPUT      :   Pre-processed dataset
 #
 # ************************************************
-mars_GetPreprocessedDataset<-function(printflag = FALSE){
+mars_GetPreprocessedDataset<-function(scaleflag = TRUE, printflag = FALSE){
   
   if(printflag){
     print("Inside main function")
@@ -79,6 +76,8 @@ mars_GetPreprocessedDataset<-function(printflag = FALSE){
   # ************************************************
   # Read data from file
   dataset<-NreadDataset(DATASET_FILENAME)
+  
+  print(getMode(dataset$tenure))
   
   
   #*************************************************
@@ -89,11 +88,13 @@ mars_GetPreprocessedDataset<-function(printflag = FALSE){
   #Shuffle these rows and select 1869 rows.
   set.seed(42)
   n_shuffled <- n[sample(1:nrow(n)), ]
-  n_final <- n_shuffled[1: (nrow(y)), ]  
+  n_final <- n_shuffled[1: (nrow(y)), ] 
   #Return balanced and shuffled dataset
   yandn <- rbind(y, n_final)
   dataset <- yandn[sample(1:nrow(yandn)), ]
-  
+  #*************************************************  
+  p<-ggplot(dataset, aes(x=tenure, y = TotalCharges)) + geom_point()
+  print(p)
   
   
   # ************************************************
@@ -107,6 +108,8 @@ mars_GetPreprocessedDataset<-function(printflag = FALSE){
   # ************************************************
   # Set TotalCharges to zero where tenure is zero
   dataset[which(dataset$tenure==0),"TotalCharges"]<--0
+  
+
   
   # ************************************************  
   # One-hot encoding special cases
@@ -156,16 +159,22 @@ mars_GetPreprocessedDataset<-function(printflag = FALSE){
   # ************************************************
   # This is a sub-set frame of just the ordinal fields
   ordinals<-dataset[,which(field_types1==TYPE_ORDINAL)]
-  
+
   # Replace outlying ordinals with mean values
   ordinals<-NPREPROCESSING_outlier(ordinals=ordinals,confidence=OUTLIER_CONF)
+  if(scaleflag==TRUE){
+    # ************************************************
+    # z-scale
+    zscaled<-as.data.frame(scale(ordinals,center=TRUE, scale=TRUE))
+    
+    # Scaled numeric input fields to [0.0,1.0]
+    ordinalReadyforML<-Nrescaleentireframe(zscaled)
+  }else{
+    ordinalReadyforML<-ordinals
+    
+  }
   
-  # ************************************************
-  # z-scale
-  zscaled<-as.data.frame(scale(ordinals,center=TRUE, scale=TRUE))
-  
-  # Scaled numeric input fields to [0.0,1.0]
-  ordinalReadyforML<-Nrescaleentireframe(zscaled)
+
   
   # ************************************************
   # Process the categorical (symbolic/discreet) fields using 1-hot-encoding
@@ -206,7 +215,17 @@ mars_GetPreprocessedDataset<-function(printflag = FALSE){
   print("End")
   
   
+
+  
+
+  
   return(combinedML)
   
 } #endof main()
+
+getMode <- function(v) {
+  uniqv <- unique(v)
+  uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+
 

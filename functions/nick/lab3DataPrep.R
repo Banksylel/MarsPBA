@@ -680,3 +680,25 @@ NPREPROCESSING_prettyDataset<-function(dataset,...){
                               ))
   print(t)
 }
+
+
+
+
+# ************************************************
+# myModelFormula() :
+#
+# Create formula for column names & given output
+#
+# INPUT   :   Data frame - dataset         - data
+#         :   String     - fieldNameOutput - name of the output field
+#
+# OUTPUT  :   Formula    - R formula object
+#
+# ************************************************
+myModelFormula<-function(dataset,fieldNameOutput){
+  inputs<-paste(names(dataset)[which(names(dataset)!=fieldNameOutput)],collapse = "+")
+  output<-paste(fieldNameOutput,"~")
+  formular=as.formula(paste(output,inputs))
+  return(formular)
+} #endof myModelFormula()
+

@@ -23,7 +23,7 @@
 # R Script For lab 3
 
 #  clears all objects in "global environment"
-rm(list=ls())
+#rm(list=ls())
 
 # ************************************************
 # Global Environment variables
@@ -50,99 +50,74 @@ MYLIBRARIES<-c("outliers",
                "stats",
                "PerformanceAnalytics")
 
-
-
 # User defined functions are next
 
 FOREST_SIZE       <- 3000                 # Number of trees in the forest
-MAX_NODES <-  NULL
+MAX_NODES <-  20
 MTRY <- 5
 
 
 
-findOptimalTreeParameters <- function(dataset){
-  forest_sizes <-  c(250, 300, 350, 400, 450, 500, 550, 600, 800, 1000, 2000, 3000, 4000)
-  max_nodes <-  c(5: 15, NULL)
-  mtry <- c(1:10)
-  
-  
+FOREST_SIZE_TEST = "Forest Size"
+MAX_NODES_TEST = "Max Nodes"
+MTRY_TEST = "MTRY"
 
-  
 
-  #Determine best mtry
-  for(i in 1:length(mtry)){
-    FOREST_SIZE <-  1000
-    MAX_NODES <- NULL
-    MTRY <-  mtry[i]
+
+
+
+
+testForestParameter <- function(dataset, testName, testSet, kfolds){
+  
+  forestSize <- FOREST_SIZE
+  maxNodes <- MAX_NODES
+  mtry <- MTRY
+  
+  
+  print(paste("Running tests to determine optimal value for:",testName))
+  for(i in 1:length(testSet)){
+    print(paste("Test",i,"of",length(testSet)))
+    print(paste("Testing", testName, "=", testSet[i]))
     
-    results <-  kfold(dataset, 5, randomForest)
-    results <-  c(results, FOREST_SIZE=FOREST_SIZE, MAX_NODES=MAX_NODES, MTRY=MTRY)
-
+    if(testName == FOREST_SIZE_TEST){
+      forestSize <- testSet[[i]]
+    }else if(testName==MAX_NODES_TEST){
+      maxNodes <- testSet[i]
+    }else if(testName==MTRY_TEST){
+      mtry <- testSet[i]
+    }
+    
+    results <-  kfold(dataset, 5, randomForest, forestSize=forestSize, maxNodes=maxNodes, mtry=mtry)
+    
+    
+    results <-  c(forestSize=forestSize, maxNodes=maxNodes, mtry=mtry ,results)
+    
     if(i==1){
-      allResults<-data.frame(MTRYTEST=unlist(results))
+      allResults<-data.frame(ParamTest=unlist(results))
       
     }else{
-      allResults<-cbind(allResults,data.frame(MTRYTEST=unlist(results)))
+      allResults<-cbind(allResults,data.frame(ParamTest=unlist(results)))
     }
+    
   }
   allResults<-data.frame(t(allResults))
+  
   print(formattable::formattable(allResults))
-  
-  
-  
-  # 
-  # 
-  # #Determine best mtry
-  # for(i in 1:length(max_nodes)){
-  #   FOREST_SIZE <-  1000
-  #   MAX_NODES <- max_nodes[i]
-  #   MTRY <-  5
-  #   
-  #   results <-  kfold(dataset, 5, randomForest)
-  #   results <-  c(results, FOREST_SIZE=FOREST_SIZE, MAX_NODES=MAX_NODES, MTRY=MTRY)
-  #   
-  #   if(i==1){
-  #     allResults<-data.frame(MTRYTEST=unlist(results))
-  #     
-  #   }else{
-  #     allResults<-cbind(allResults,data.frame(MTRYTEST=unlist(results)))
-  #   }
-  # }
-  # allResults<-data.frame(t(allResults))
-  # print(formattable::formattable(allResults))
-  # 
-  # 
-  # 
-  # 
-  # #Determine best mtry
-  # for(i in 1:length(forest_sizes)){
-  #   FOREST_SIZE <-  forest_sizes[i]
-  #   MAX_NODES <- NULL
-  #   MTRY <-  5
-  #   
-  #   results <-  kfold(dataset, 5, randomForest)
-  #   results <-  c(results, FOREST_SIZE=FOREST_SIZE, MAX_NODES=MAX_NODES, MTRY=MTRY)
-  #   
-  #   if(i==1){
-  #     allResults<-data.frame(MTRYTEST=unlist(results))
-  #     
-  #   }else{
-  #     allResults<-cbind(allResults,data.frame(MTRYTEST=unlist(results)))
-  #   }
-  # }
-  # allResults<-data.frame(t(allResults))
-  # print(formattable::formattable(allResults))
-  # 
-  # 
-  
   
   
   
 }
 
+testAllForestParameters <- function(dataset, k){
 
-
-
+  forestSizeTests <-  c(250, 300, 350, 400, 450, 500, 550, 600, 800, 1000, 2000, 3000, 4000)
+  maxNodesTests <- c(5: 25, NULL)
+  mtryTests <- c(1:10)
+  
+  findOptimalForestParameter(dataset, MAX_NODES_TEST, maxNodesTests, 5)
+  findOptimalForestParameter(dataset, FOREST_SIZE_TEST, forestSizeTests, 5)
+  findOptimalForestParameter(dataset, MTRY_TEST, mtryTests, 5)
+}
 
 
 getTreeClassifications<-function(myTree,
@@ -196,7 +171,7 @@ getTreeClassifications<-function(myTree,
 #         :   Data Frame     - measures  - performance metrics
 #
 # ************************************************
-randomForest<-function(train,test, forestSize ,plot=TRUE, ...){
+randomForest<-function(train,test,plot=TRUE, forestSize=FOREST_SIZE, maxNodes=MAX_NODES, mtry=MTRY){
   myTitle<-(paste("Preprocessed Dataset. Random Forest=",FOREST_SIZE,"trees"))
   print(myTitle)
   positionClassOutput<-which(names(train)==OUTPUT_FIELD)
@@ -209,10 +184,10 @@ randomForest<-function(train,test, forestSize ,plot=TRUE, ...){
   
   rf<-randomForest::randomForest(train_inputs,
                                  factor(train_expected),
-                                 ntree=FOREST_SIZE ,
+                                 ntree=forestSize ,
                                  importance=TRUE,
-                                 maxnodes=MAX_NODES,
-                                 mtry=MTRY)
+                                 maxnodes=maxNodes,
+                                 mtry=mtry)
   
   if(plot==TRUE){
     #Visualise some trees
@@ -250,6 +225,26 @@ randomForest<-function(train,test, forestSize ,plot=TRUE, ...){
 } #endof randomForest()
 
 
+createRandomForestModel <- function(dataset,print=FALSE){
+  positionClassOutput<-which(names(dataset)==OUTPUT_FIELD)
+  
+  # train data: dataframe with the input fields
+  train_inputs<-dataset[-positionClassOutput]
+  
+  # train data: vector with the expedcted output
+  train_expected<-dataset[,positionClassOutput]
+  
+  rf<-randomForest::randomForest(train_inputs,
+                                 factor(train_expected),
+                                 ntree=FOREST_SIZE ,
+                                 importance=TRUE,
+                                 maxnodes=MAX_NODES,
+                                 mtry=MTRY)
+  
+  return(rf)
+  
+}
+
 
 # ************************************************
 # main() :
@@ -261,39 +256,24 @@ randomForest<-function(train,test, forestSize ,plot=TRUE, ...){
 #
 # Keeps all objects as local to this function
 # ************************************************
-main<-function(){
+evaluateRandomForestModel<-function(dataset){
   
   keeps <-  c("TotalCharges", "MonthlyCharges", "tenure", "Contract_Monthtomonth", "InternetService_Fiber", "InternetService_TechSupport", "Contract_Twoyear", "Churn")
   
-  dataset <- mars_GetPreprocessedDataset(FALSE)
-  
   dataset <-  keepFields(dataset, keeps)
+
   
-  ##UNCOMMENT OUT TO RUN, TAKES A LONG TIME. 
-  #optimals <-  findOptimalTreeParameters(dataset)
-  
-  
-  results <-  kfold(dataset, 5, randomForest(forestSize=69))
-  
-  
-  print(results)
+  results <-  kfold(dataset, 5, randomForest, plot=FALSE)
+
+  return(results)
   
 } #endof main()
 
 
 
-# ************************************************
-# This is where R starts execution
-
-# clears the console area
-cat("\014")
-
 # Loads the libraries
 library(pacman)
 pacman::p_load(char=MYLIBRARIES,install=TRUE,character.only=TRUE)
-
-#This [optionally] sets working directory
-#setwd("")
 
 #Load additional R script files provide for this lab
 source("functions/mars/data_pre_processing_pipeline.R")
@@ -301,13 +281,4 @@ source("functions/mars/data_pre_processing_functions.R")
 source("functions/nick/4labfunctions.R")
 source("functions/nick/lab4DataPrepNew.R")
 source("functions/mars/utility_functions.R")
-
-set.seed(123)
-
-print("WELCOME TO LAB 3: PRACTICAL BUSINESS ANALYTICS")
-
-# ************************************************
-main()
-
-print("end")
 
