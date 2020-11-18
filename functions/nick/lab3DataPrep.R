@@ -447,32 +447,6 @@ NPREPROCESSING_outlier<-function(ordinals,confidence){
 }
 
 # ************************************************
-# NprintMeasures()
-#
-# Output measures to the Viewer
-#
-# INPUT:    list - results - results from NcalcConfusion()
-#
-# OUTPUT :  NONE
-#
-# 070819NRT updated to output table to viewer only
-# 171019NRT added column name "Metric"
-# ************************************************
-NprintMeasures<-function(results){
-
-  #This outputs our results into the "Viewer" in RStudio
-  tidyTable<-data.frame(t(t(results)))
-  names(tidyTable)[1]<-"Metric"
-
-  t<-formattable::formattable(tidyTable,list(
-    TP = formatter("span",style = x ~ style(color = "black"),~sprintf("%.0f",TP)),
-    FN = formatter("span",style = x ~ style(color = "black"),~sprintf("%.0f",FN)),
-    TN = formatter("span",style = x ~ style(color = "black"),~sprintf("%.0f",TN)),
-    FP = formatter("span",style = x ~ style(color = "black"),~sprintf("%.0f",FP))))
-  print(t)
-}
-
-# ************************************************
 # NplotConfusion()
 #
 # Plot confusion matrix
