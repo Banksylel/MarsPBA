@@ -74,6 +74,25 @@ visualiseDataset <- function(filename){
   #
   #Payment related visualizations
   #
+  
+  paymentPcts <-  dataset$PaymentMethod
+  paymentPcts <- list("Payment Method" = 0, "n" = 0,"%" = 0,"per_label" = 0)
+  literals<-as.vector(unique(dataset$PaymentMethod))
+  
+  # results <- data.frame()
+  # for(literal in literals){
+  #   count <- sum(dataset$PaymentMethod == literal)
+  #   pct <- count/nrow(dataset)
+  #   pct_label <- round(pct*100,2)
+  #   result <- list("Payment Method" = literal, "n" = count,"%" = pct,"per_label" = pct_label)
+  #   result <- t(result)
+  #   results <-rbind(results, data.frame(result))
+  #   
+  #   
+  # }
+  # 
+  # print(results)
+  
   options(repr.plot.width = 18, repr.plot.height = 12)
   p <- plot_grid(ggplot(dataset, aes(x= PaymentMethod, fill = Churn)) + theme_bw()+ geom_bar(stat= "count", position="dodge")+ geom_text(stat="count", aes(label=..count..), vjust=2)+ labs(y= "Churn count", title="Payment Method Churn rate"),
             ggplot(dataset, aes(x= PaperlessBilling, fill = Churn)) + theme_bw()+ geom_bar(stat= "count", position="dodge")+ geom_text(stat="count", aes(label=..count..), vjust=2)+ labs(y= "Churn count", title="Paperless billing Churn rate"),
@@ -126,3 +145,5 @@ visualiseDataset <- function(filename){
   #**********************************************************
 }
 
+
+visualiseDataset(DATASET_FILENAME)

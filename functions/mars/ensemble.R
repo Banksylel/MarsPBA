@@ -69,7 +69,7 @@ ensemble <- function(train,test){
   test_expected <- test[,OUTPUT_FIELD]
   results<-NcalcConfusion(expectedClass=test_expected,
                           predictedClass=ensemblePredictions)
-  
+  results$threshold <- NA
   results$AUC<-auroc(score=ensemblePredictions,bool=test_expected) # Estimate the AUC
   
   return(results)
@@ -196,7 +196,7 @@ evaluateEnsembleModel <- function(dataset){
 
   results <-  kfold(dataset, 5, ensemble)
   
-  print(results)
+  return(results)
   
 }
 

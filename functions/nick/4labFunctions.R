@@ -236,6 +236,9 @@ NdetermineThreshold<-function(test_predicted,
 
   myThreshold<-minEuclidean      # Min Distance should be the same as analysis["threshold"]
 
+  if(is.na(myThreshold)){
+    myThreshold="NA"
+  }
   #Use the "best" distance threshold to evaluate classifier
   results<-NEvaluateClassifier(test_predicted=test_predicted,
                                 test_expected=test_expected,
