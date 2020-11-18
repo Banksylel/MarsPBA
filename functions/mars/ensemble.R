@@ -102,8 +102,6 @@ ensemblePredictVote <- function(lrModel, rfModel, nnModel, test){
   logrThreshold <- NdetermineThreshold(logrPredictions, test_expected)$threshold
   logrVotes<-ifelse(logrPredictions<logrThreshold,0,1)
   
-  
-  
   rfPredictions <- rfPredict(rfModel, test)
   rfThreshold <- NdetermineThreshold(rfPredictions, test_expected)$threshold
   rfVotes<-ifelse(rfPredictions<rfThreshold,0,1)

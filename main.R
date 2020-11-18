@@ -61,62 +61,62 @@ main<-function(){
   print("Preprocess the dataset")
   fullDataset <-  mars_GetPreprocessedDataset(scaleflag=TRUE, printflag=TRUE)
 
-  ##Split dataset into train/validation set and test set
-  trainSamples <- round(nrow(fullDataset)*0.9)
-  train <- fullDataset[1:trainSamples,]
-  
-  testSamples <- nrow(fullDataset)-trainSamples
-  test <- fullDataset[(trainSamples+1):nrow(fullDataset),]
-  test_expected <- test[,OUTPUT_FIELD]
-  
-  ##Run logistic regression evaluation
-  print("Print logistic regression measures")
-  lrResults <-  evaluateLogisticRegressionModel(train)
-  NprintMeasures(lrResults, "Logistic Regression model results")
-  
-  ##Train a logistic regression model on the full train set and output final test measures
-  lrModel <- createLogisticRegressionModel(train)
-  lrPredictions <- lrPredict(lrModel,test)
-  lrTestResults<-NdetermineThreshold(lrPredictions,test_expected,plot=FALSE)
-  NprintMeasures(lrTestResults, "Logistic Regression model final test evaluation")
-  
-  
-  ##Run random forest evaluation
-  print("Print random forest measures")
-  rfResults <-  evaluateRandomForestModel(train)
-  NprintMeasures(rfResults, "Random Forest model results")
-  
-  ##Train a random forest model on the full train set and output final test measures
-  rfModel <- createRandomForestModel(train)
-  rfPredictions <- rfPredict(rfModel,test)
-  rfTestResults<-NdetermineThreshold(rfPredictions,test_expected,plot=FALSE)
-  NprintMeasures(rfTestResults, "Random forest model final test evaluation")
-  
-  
-  
-  ##Run neural network evaluation
-  print("Print neural network measures")
-  nnResults <-  evaluateNeuralNetworkModel(train)
-  NprintMeasures(nnResults, "Neural Network model results")
-  
-  ##Train a neural network model on the full train set and output final test measures
-  nnModel <- createNeuralNetworkModel(train)
-  nnPredictions <- nnPredict(nnModel,test)
-  nnTestResults<-NdetermineThreshold(nnPredictions,test_expected,plot=FALSE)
-  NprintMeasures(nnTestResults, "Neural network model final test evaluation")
-  
-  
-  
-  ##Run ensemble model evaluation
-  print("Print ensemble measures")
-  ensembleResults <-  evaluateEnsembleModel(train)
-  NprintMeasures(ensembleResults, "Ensemble model results")
-  
-  ##Train an ensemble model on the full train set and output final test measures
-  ensembleModel <- createEnsembleModel(train)
-  ensemblePredictions <- ensemblePredictMean(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel,test)
-  ensembleTestResults<-NdetermineThreshold(ensemblePredictions,test_expected,plot=FALSE)
-  NprintMeasures(ensembleTestResults, "Ensemble model final test evaluation")
+  # ##Split dataset into train/validation set and test set
+  # trainSamples <- round(nrow(fullDataset)*0.9)
+  # train <- fullDataset[1:trainSamples,]
+  # 
+  # testSamples <- nrow(fullDataset)-trainSamples
+  # test <- fullDataset[(trainSamples+1):nrow(fullDataset),]
+  # test_expected <- test[,OUTPUT_FIELD]
+  # 
+  # ##Run logistic regression evaluation
+  # print("Print logistic regression measures")
+  # lrResults <-  evaluateLogisticRegressionModel(train)
+  # NprintMeasures(lrResults, "Logistic Regression model results")
+  # 
+  # ##Train a logistic regression model on the full train set and output final test measures
+  # lrModel <- createLogisticRegressionModel(train)
+  # lrPredictions <- lrPredict(lrModel,test)
+  # lrTestResults<-NdetermineThreshold(lrPredictions,test_expected,plot=FALSE)
+  # NprintMeasures(lrTestResults, "Logistic Regression model final test evaluation")
+  # 
+  # 
+  # ##Run random forest evaluation
+  # print("Print random forest measures")
+  # rfResults <-  evaluateRandomForestModel(train)
+  # NprintMeasures(rfResults, "Random Forest model results")
+  # 
+  # ##Train a random forest model on the full train set and output final test measures
+  # rfModel <- createRandomForestModel(train)
+  # rfPredictions <- rfPredict(rfModel,test)
+  # rfTestResults<-NdetermineThreshold(rfPredictions,test_expected,plot=FALSE)
+  # NprintMeasures(rfTestResults, "Random forest model final test evaluation")
+  # 
+  # 
+  # 
+  # ##Run neural network evaluation
+  # print("Print neural network measures")
+  # nnResults <-  evaluateNeuralNetworkModel(train)
+  # NprintMeasures(nnResults, "Neural Network model results")
+  # 
+  # ##Train a neural network model on the full train set and output final test measures
+  # nnModel <- createNeuralNetworkModel(train)
+  # nnPredictions <- nnPredict(nnModel,test)
+  # nnTestResults<-NdetermineThreshold(nnPredictions,test_expected,plot=FALSE)
+  # NprintMeasures(nnTestResults, "Neural network model final test evaluation")
+  # 
+  # 
+  # 
+  # ##Run ensemble model evaluation
+  # print("Print ensemble measures")
+  # ensembleResults <-  evaluateEnsembleModel(train)
+  # NprintMeasures(ensembleResults, "Ensemble model results")
+  # 
+  # ##Train an ensemble model on the full train set and output final test measures
+  # ensembleModel <- createEnsembleModel(train)
+  # ensemblePredictions <- ensemblePredictMean(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel,test)
+  # ensembleTestResults<-NdetermineThreshold(ensemblePredictions,test_expected,plot=FALSE)
+  # NprintMeasures(ensembleTestResults, "Ensemble model final test evaluation")
   
   
   ##Run clustering evaluation
@@ -154,6 +154,7 @@ source("functions/mars/logistic_regression_functions.R")
 source("functions/mars/random_forest_functions.R")
 source("functions/mars/neural_network_functions.R")
 source("functions/mars/ensemble.R")
+source("functions/mars/clustering_functions.R")
 
 set.seed(123)
 # clears the console area

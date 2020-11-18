@@ -34,7 +34,6 @@ MYLIBRARIES<-c("outliers",
                "stringr",
                "PerformanceAnalytics")
 
-# Write ML Models here
 plotKValueTests <- function(dataset){
   
   positionOutput<-which(names(dataset)==OUTPUT_FIELD)
@@ -69,6 +68,7 @@ visualiseClusters <- function(dataset, kmeansModel){
   K <-  length(kmeansModel$size)
   print(K)
   
+  results <-  data.frame()
   for(i in 1:K){
     cluster<-dataset[which(kmeansModel$cluster==i),] 
     
@@ -86,16 +86,16 @@ visualiseClusters <- function(dataset, kmeansModel){
     numYearly <- nrow(cluster[which(cluster$Contract_Oneyear==1),])
     numTwoYearly <- nrow(cluster[which(cluster$Contract_Twoyear==1),])
     
+    
     print(paste("Contract types: Monthly:", numMonthly, ", One year", numYearly, "Two year", numTwoYearly ,delim=""))
-    print(paste("Cluster ",i,": Retained: ", numRetained ,delim=""))
-    
     total <-  nrow(cluster)
-    
-    print(paste("Breakdown: Monthly:", numMonthly/total, ", One year", numYearly/total, "Two year", numTwoYearly/total ,delim=""))
-    
+    print(paste("Contract type percentages: Monthly:", numMonthly/total, ", One year", numYearly/total, "Two year", numTwoYearly/total ,delim=""))
     
     
     
+    info <- summary(cluster)
+    means <-  unlist(info[4,])
+    results <-rbind(results, data.frame(means))
     
     
     p<-ggplot(cluster, aes(x=tenure)) + geom_histogram(color = "black", binwidth = 1, fill="white", alpha=0.5)+
@@ -117,7 +117,7 @@ visualiseClusters <- function(dataset, kmeansModel){
     
     
   }
-  
+  print(results)
   p<-ggplot(dataset, aes(x=tenure, y = MonthlyCharges)) + geom_point(color = factor(kmeansModel$cluster))
   print(p)
   
@@ -154,7 +154,7 @@ createKmeansModel<-function(dataset){
   
   originalDataset <- mars_GetPreprocessedDataset(scaleflag = FALSE, printflag=FALSE)
   
-  print(visualiseClusters(originalDataset,modelKmeans))
+  visualiseClusters(originalDataset,modelKmeans)
   
 
  
