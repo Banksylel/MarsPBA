@@ -93,10 +93,8 @@ visualiseClusters <- function(dataset, kmeansModel){
     print(paste("Contract type percentages: Monthly:", numMonthly/total, ", One year", numYearly/total, "Two year", numTwoYearly/total ,delim=""))
     
     
-    
-    #info <- summary(cluster)
-    #means <-  unlist(info[4,])
-    #results <-rbind(results, data.frame(means))
+    means <- round(colMeans(cluster),digits = 2)
+    results <- rbind(results,cluster1=t(means))
     
     
     p<-ggplot(cluster, aes(x=tenure)) + geom_histogram(color = "black", binwidth = 1, fill="white", alpha=0.5)+
@@ -118,18 +116,96 @@ visualiseClusters <- function(dataset, kmeansModel){
     
     
   }
-  print(results)
+  print(formattable::formattable(results))
   p<-ggplot(dataset, aes(x=tenure, y = MonthlyCharges)) + geom_point(color = factor(kmeansModel$cluster))
   print(p)
   
-  p<-ggplot(dataset, aes(x=tenure, y = TotalCharges)) + geom_point(color = factor(kmeansModel$cluster))
-  print(p) + theme(legend.position="right")
+  p<-ggplot(dataset, aes(x=tenure, y = TotalCharges)) + geom_point(color = factor(kmeansModel$cluster))+ theme(legend.position="right")
+  
+  print(p) 
 
+  plotClusterServiceSubscriptionRates(results)
+  plotClusterChurnRates(results)
+  plotClusterContractRates(results)
+  plotClusterFamilyStatistics(results)
+}
+
+plotClusterFamilyStatistics <- function(results){
+  partner <- as.numeric(as.vector(results[,"Partner"]))
+  dependents <- as.numeric(as.vector(results[,"Dependents"]))
+  
+
+  df = melt(data.frame(HasPartner=partner, HasDependents=dependents,
+                       experiment=c("Cluster 1","Cluster 2", "Cluster 3", "Cluster 4", "Cluster 5")),
+            variable_name="Family")
+  
+  p <- ggplot(df, aes(experiment, value, fill=Family)) + 
+    geom_bar(position="dodge", stat='identity')+labs(title="Family statistics by ratio in clusters",
+                                                     x ="Cluster", y = "Ratio")
   
   print(p)
   
 }
 
+
+plotClusterChurnRates <- function(results){
+  yes <- as.numeric(as.vector(results[,"Churn"]))
+  no <- as.numeric(as.vector(1-results[,"Churn"]))
+  
+
+  df = melt(data.frame(Yes=yes, No=no,
+                       experiment=c("Cluster 1","Cluster 2", "Cluster 3", "Cluster 4", "Cluster 5")),
+            variable_name="Churn")
+  
+  p <- ggplot(df, aes(experiment, value, fill=Churn)) + 
+    geom_bar(position="dodge", stat='identity')+labs(title="Churn rates per cluster",
+                                                     x ="Cluster", y = "Churn Rate")
+  
+  print(p)
+  
+}
+
+
+
+plotClusterContractRates <- function(results){
+  oneMonth <- as.numeric(as.vector(results[,"Contract_Monthtomonth"]))
+  oneYear <- as.numeric(as.vector(results[,"Contract_Oneyear"]))
+  twoYear <- as.numeric(as.vector(results[,"Contract_Twoyear"]))
+
+  df = melt(data.frame(OneMonth=oneMonth, OneYear=oneYear,TwoYear=twoYear,
+                       experiment=c("Cluster 1","Cluster 2", "Cluster 3", "Cluster 4", "Cluster 5")),
+            variable_name="ContractLength")
+  
+  p <- ggplot(df, aes(experiment, value, fill=ContractLength)) + 
+    geom_bar(position="dodge", stat='identity')+labs(title="Contract length rates per cluster",
+                                                     x ="Cluster", y = "Contract length rate")
+  
+  print(p)
+  
+}
+plotClusterServiceSubscriptionRates <- function(results){
+  addonsNames <- c("InternetService_OnlineSecurity", "InternetService_OnlineBackup", "InternetService_DeviceProtection","InternetService_TechSupport", "InternetService_StreamingTV", "InternetService_StreamingMovies")
+  addonsDF <- results[,addonsNames]
+  
+  #Add baseline for plot clarity
+  addonsDF[,] <- addonsDF[,]+0.002
+  
+  cluster1 <- as.numeric(as.vector(addonsDF[1,]))
+  cluster2 <- as.numeric(as.vector(addonsDF[2,]))
+  cluster3 <- as.numeric(as.vector(addonsDF[3,]))
+  cluster4 <- as.numeric(as.vector(addonsDF[4,]))
+  cluster5 <- as.numeric(as.vector(addonsDF[5,]))
+  
+  df = melt(data.frame(Cluster1=cluster1, Cluster2=cluster2,Cluster3=cluster3, Cluster4=cluster4, Cluster5=cluster5,
+                       experiment=c("Online Security","Online Backup","Device Protection","Tech Support","Streaming TV","Steaming Movies")),
+            variable_name="cluster")
+  
+  p <- ggplot(df, aes(experiment, value, fill=cluster)) + 
+    geom_bar(position="dodge", stat='identity')+labs(title="Service subscription rates per cluster",
+                                                     x ="Service", y = "Subscription Rate")
+  
+  print(p)
+}
 
 ######## Main Function ########
 

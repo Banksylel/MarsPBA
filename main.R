@@ -36,7 +36,9 @@ MYLIBRARIES<-c("outliers",
                "stats",
                "caret",
                "stringr",
-               "PerformanceAnalytics")
+               "PerformanceAnalytics",
+               "ggplot2",
+               "reshape")
 
 
 DATASET_FILENAME  <- "telco-data.csv"          # Name of input dataset file
@@ -55,7 +57,7 @@ DATASET_FILENAME  <- "telco-data.csv"          # Name of input dataset file
 main<-function(){
   ##Run Visualisation
   print("Running visualisations of the Telco dataset")
-  visualiseDataset(DATASET_FILENAME)
+  #visualiseDataset(DATASET_FILENAME)
   
   ##Run preprocessing
   print("Preprocess the dataset")
@@ -112,28 +114,28 @@ main<-function(){
   # NprintMeasures(nnTestResults, "Neural network model final test evaluation")
   # fullResults <-rbind(fullResults, nnTestResults = data.frame(nnTestResults))
   
-  ##Run ensemble model evaluation
-  print("Print ensemble measures")
-  ensembleResults <-  evaluateEnsembleModel(train)
-  NprintMeasures(ensembleResults, "Ensemble model results")
-  fullResults <-rbind(fullResults, ensembleResults = t(data.frame(ensembleResults)))
-  
-  ##Train an ensemble model on the full train set and output final test measures
-  ensembleModel <- createEnsembleModel(train)
-  ensemblePredictions <- ensemblePredictMean(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel,test)
-  ensembleTestResults<-NdetermineThreshold(ensemblePredictions,test_expected,plot=FALSE)
-  NprintMeasures(ensembleTestResults, "Ensemble model final test evaluation")
-  fullResults <-rbind(fullResults, ensembleTestResults = data.frame(ensembleTestResults))
-  
-  print(formattable::formattable(fullResults))
-  
+  # ##Run ensemble model evaluation
+  # print("Print ensemble measures")
+  # ensembleResults <-  evaluateEnsembleModel(train)
+  # NprintMeasures(ensembleResults, "Ensemble model results")
+  # fullResults <-rbind(fullResults, ensembleResults = t(data.frame(ensembleResults)))
+  # 
+  # ##Train an ensemble model on the full train set and output final test measures
+  # ensembleModel <- createEnsembleModel(train)
+  # ensemblePredictions <- ensemblePredictMean(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel,test)
+  # ensembleTestResults<-NdetermineThreshold(ensemblePredictions,test_expected,plot=FALSE)
+  # NprintMeasures(ensembleTestResults, "Ensemble model final test evaluation")
+  # fullResults <-rbind(fullResults, ensembleTestResults = data.frame(ensembleTestResults))
+  # 
+  # print(formattable::formattable(fullResults))
+  # 
   
   
   ##Run clustering evaluation
   kMeansModel <-createKmeansModel(fullDataset)
   
 
-
+  print("end innit")
   
 } #endof main()
 
