@@ -10,12 +10,8 @@
 #
 #   UPDATE
 #   1.00      11/11/2020    Chris Endacott    Initial Version
+#   1.10      15/11/2020    Brian Nyathi      + Generalisations
 # *************************************************************
-
-#  clears all objects in "global environment"
-rm(list=ls())
-
-# ************************************************
 
 
 KFOLDS           <- 5
@@ -39,7 +35,6 @@ MYLIBRARIES<-c("outliers",
                "stringr",
                "PerformanceAnalytics")
 
-# Write ML Models here
 plotKValueTests <- function(dataset){
   
   positionOutput<-which(names(dataset)==OUTPUT_FIELD)
@@ -69,13 +64,14 @@ plotKValueTests <- function(dataset){
 }
 
 
-calculateClusterChurnRatios <- function(dataset, kmeansModel){
+visualiseClusters <- function(dataset, kmeansModel){
   
   K <-  length(kmeansModel$size)
   print(K)
   
+  results <-  data.frame()
   for(i in 1:K){
-    cluster<-dataset[which(kmeansModel$cluster==i),]
+    cluster<-dataset[which(kmeansModel$cluster==i),] 
     
     numChurned <- nrow(cluster[which(cluster$Churn==1),])
     numRetained <-  nrow(cluster[which(cluster$Churn==0),])
@@ -87,11 +83,129 @@ calculateClusterChurnRatios <- function(dataset, kmeansModel){
     
     print(paste("Cluster ",i,": Churn ratio: ", churnRatio ,delim=""))
     
+    numMonthly <- nrow(cluster[which(cluster$Contract_Monthtomonth==1),])
+    numYearly <- nrow(cluster[which(cluster$Contract_Oneyear==1),])
+    numTwoYearly <- nrow(cluster[which(cluster$Contract_Twoyear==1),])
+    
+    
+    print(paste("Contract types: Monthly:", numMonthly, ", One year", numYearly, "Two year", numTwoYearly ,delim=""))
+    total <-  nrow(cluster)
+    print(paste("Contract type percentages: Monthly:", numMonthly/total, ", One year", numYearly/total, "Two year", numTwoYearly/total ,delim=""))
+    
+    
+    means <- round(colMeans(cluster),digits = 2)
+    results <- rbind(results,cluster1=t(means))
+    
+    
+    p<-ggplot(cluster, aes(x=tenure)) + geom_histogram(color = "black", binwidth = 1, fill="white", alpha=0.5)+
+      xlim(0, 70)+
+      ylim(0, 200)+
+      ggtitle(paste("Tenure histogram for cluster",i))
+    print(p)
+    p<-ggplot(cluster, aes(x=MonthlyCharges)) + geom_histogram(color = "pink", binwidth=3, fill="white", alpha=0.5)+
+      xlim(0, 130)+
+      ylim(0, 150)+
+      ggtitle(paste("Monthly charges histogram for cluster",i))
+    print(p)
+    p<-ggplot(cluster, aes(x=TotalCharges)) + geom_histogram(color = "blue", binwidth = 200, fill="white", alpha=0.5)+
+      xlim(0, 7000)+
+      ylim(0, 200)+
+      ggtitle(paste("Total charges histogram for cluster",i))
+    print(p)
+    
+    
+    
   }
+  print(formattable::formattable(results))
+  p<-ggplot(dataset, aes(x=tenure, y = MonthlyCharges)) + geom_point(color = factor(kmeansModel$cluster))
+  print(p)
+  
+  p<-ggplot(dataset, aes(x=tenure, y = TotalCharges)) + geom_point(color = factor(kmeansModel$cluster))+ theme(legend.position="right")
+  
+  print(p) 
+
+  plotClusterServiceSubscriptionRates(results)
+  plotClusterChurnRates(results)
+  plotClusterContractRates(results)
+  plotClusterFamilyStatistics(results)
+}
+
+plotClusterFamilyStatistics <- function(results){
+  partner <- as.numeric(as.vector(results[,"Partner"]))
+  dependents <- as.numeric(as.vector(results[,"Dependents"]))
+  
+
+  df = melt(data.frame(HasPartner=partner, HasDependents=dependents,
+                       experiment=c("Cluster 1","Cluster 2", "Cluster 3", "Cluster 4", "Cluster 5")),
+            variable_name="Family")
+  
+  p <- ggplot(df, aes(experiment, value, fill=Family)) + 
+    geom_bar(position="dodge", stat='identity')+labs(title="Family statistics by ratio in clusters",
+                                                     x ="Cluster", y = "Ratio")
+  
+  print(p)
   
 }
 
 
+plotClusterChurnRates <- function(results){
+  yes <- as.numeric(as.vector(results[,"Churn"]))
+  no <- as.numeric(as.vector(1-results[,"Churn"]))
+  
+
+  df = melt(data.frame(Yes=yes, No=no,
+                       experiment=c("Cluster 1","Cluster 2", "Cluster 3", "Cluster 4", "Cluster 5")),
+            variable_name="Churn")
+  
+  p <- ggplot(df, aes(experiment, value, fill=Churn)) + 
+    geom_bar(position="dodge", stat='identity')+labs(title="Churn rates per cluster",
+                                                     x ="Cluster", y = "Churn Rate")
+  
+  print(p)
+  
+}
+
+
+
+plotClusterContractRates <- function(results){
+  oneMonth <- as.numeric(as.vector(results[,"Contract_Monthtomonth"]))
+  oneYear <- as.numeric(as.vector(results[,"Contract_Oneyear"]))
+  twoYear <- as.numeric(as.vector(results[,"Contract_Twoyear"]))
+
+  df = melt(data.frame(OneMonth=oneMonth, OneYear=oneYear,TwoYear=twoYear,
+                       experiment=c("Cluster 1","Cluster 2", "Cluster 3", "Cluster 4", "Cluster 5")),
+            variable_name="ContractLength")
+  
+  p <- ggplot(df, aes(experiment, value, fill=ContractLength)) + 
+    geom_bar(position="dodge", stat='identity')+labs(title="Contract length rates per cluster",
+                                                     x ="Cluster", y = "Contract length rate")
+  
+  print(p)
+  
+}
+plotClusterServiceSubscriptionRates <- function(results){
+  addonsNames <- c("InternetService_OnlineSecurity", "InternetService_OnlineBackup", "InternetService_DeviceProtection","InternetService_TechSupport", "InternetService_StreamingTV", "InternetService_StreamingMovies")
+  addonsDF <- results[,addonsNames]
+  
+  #Add baseline for plot clarity
+  addonsDF[,] <- addonsDF[,]+0.002
+  
+  cluster1 <- as.numeric(as.vector(addonsDF[1,]))
+  cluster2 <- as.numeric(as.vector(addonsDF[2,]))
+  cluster3 <- as.numeric(as.vector(addonsDF[3,]))
+  cluster4 <- as.numeric(as.vector(addonsDF[4,]))
+  cluster5 <- as.numeric(as.vector(addonsDF[5,]))
+  
+  df = melt(data.frame(Cluster1=cluster1, Cluster2=cluster2,Cluster3=cluster3, Cluster4=cluster4, Cluster5=cluster5,
+                       experiment=c("Online Security","Online Backup","Device Protection","Tech Support","Streaming TV","Steaming Movies")),
+            variable_name="cluster")
+  
+  p <- ggplot(df, aes(experiment, value, fill=cluster)) + 
+    geom_bar(position="dodge", stat='identity')+labs(title="Service subscription rates per cluster",
+                                                     x ="Service", y = "Subscription Rate")
+  
+  print(p)
+}
 
 ######## Main Function ########
 
@@ -104,12 +218,8 @@ calculateClusterChurnRatios <- function(dataset, kmeansModel){
 # OUTPUT      :   None
 #
 # ************************************************
-main<-function(){
-  
-  # Read data from file
-  dataset <- mars_GetPreprocessedDataset(printflag=FALSE)
-  
-  
+createKmeansModel<-function(dataset){
+
   #plotKValueTests(dataset)
   
 
@@ -122,30 +232,14 @@ main<-function(){
   
   originalDataset <- mars_GetPreprocessedDataset(scaleflag = FALSE, printflag=FALSE)
   
-  print(calculateClusterChurnRatios(originalDataset,modelKmeans))
+  visualiseClusters(originalDataset,modelKmeans)
   
 
  
   # The dataset for ML information
-  print("End")
+  return(modelKmeans)
   
 } #endof main()
-
-# ************************************************
-# This is where R starts execution
-
-# Automatically release memory
-gc()
-
-# Clear plots and other graphics in RStudio output
-if(!is.null(dev.list())) dev.off()
-graphics.off()
-
-# Clear all warning messages
-assign("last.warning", NULL, envir = baseenv())
-
-# Clears the RStudio console area
-cat("\014")
 
 # If library not already on your computer this will download and
 # install the library. Each library is activated.
@@ -159,13 +253,4 @@ source("functions/nick/lab2functions.R")   # From Prof Nick's lab
 source("functions/mars/data_pre_processing_functions.R")
 source("functions/mars/data_pre_processing_pipeline.R")
 
-# Reset the pseudo-random number generator to start at the same point
-set.seed(123)
 
-print("PBA TEAM MARS: DATA PRE-PROCESSING PIPELINE")
-
-# ************************************************
-# Call the main function
-main()
-
-print("end")
