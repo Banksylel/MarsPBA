@@ -88,11 +88,11 @@ mars_GetPreprocessedDataset<-function(scaleflag = TRUE, printflag = FALSE){
   #Shuffle these rows and select 1869 rows.
   set.seed(42)
   n_shuffled <- n[sample(1:nrow(n)), ]
-  n_final <- n_shuffled[1:nrow(y), ]  
+  n_final <- n_shuffled[1: (nrow(y)), ] 
   #Return balanced and shuffled dataset
   yandn <- rbind(y, n_final)
   dataset <- yandn[sample(1:nrow(yandn)), ]
-  
+  #*************************************************  
   p<-ggplot(dataset, aes(x=tenure, y = TotalCharges)) + geom_point()
   print(p)
   
