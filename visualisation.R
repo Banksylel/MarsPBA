@@ -55,7 +55,7 @@ print(barGraph4)
 #bar graph to compare Contract, PaperlessBilling, PaymentMethod with churn
 barGraph5 <- plot_grid(ggplot(dataset, aes(x=Contract, fill=Churn)) + geom_bar(position="dodge"),
     ggplot(dataset, aes(x=PaperlessBilling, fill=Churn)) + geom_bar(position="dodge"),
-    ggplot(dataset, aes(x=PaymentMethod, fill=Churn)) + geom_bar(position="dodge"))
+    ggplot(dataset, aes(x=PaymentMethod, fill=Churn)) + geom_bar(position="dodge") + scale_x_discrete(guide = guide_axis(n.dodge=3)))
 print(barGraph5)
 
 
