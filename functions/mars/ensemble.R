@@ -59,7 +59,9 @@ MYLIBRARIES<-c("outliers",
 
 
 
-ensemble <- function(train,test){
+ensemble <- function(train,test,...){
+  
+  
   
   ensembleModel <- createEnsembleModel(train)
   
@@ -75,6 +77,29 @@ ensemble <- function(train,test){
   return(results)
 }
 
+
+ensembleROI <- function(train,test,threshold, monthlyCharges, acquisitionCost, enticementPercent, minEnticementThreshold,...){
+  
+  #Get the raw monthly charges for each test row
+  testRowIds <- as.numeric(rownames(test))
+  testMonthlyCharges <- c()
+  for(rowId in testRowIds){
+    testMonthlyCharges <- append(testMonthlyCharges,monthlyCharges[rowId])
+  }
+  
+  ensembleModel <- createEnsembleModel(train)
+  
+  ensemblePredictions <-  ensemblePredictMean(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel, test)
+  #ensemblePredictions <-  ensemblePredictVote(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel, test)
+  
+  
+  
+  test_expected <- test[,OUTPUT_FIELD]
+  threshold <- NcalculateThreshold(ensemblePredictions, test_expected)
+  results <- evaluateModel(ensemblePredictions, test_expected, threshold, testMonthlyCharges, acquisitionCost, enticementPercent,minEnticementThreshold)
+  
+  return(results)
+}
 
 
 
@@ -199,6 +224,7 @@ evaluateEnsembleModel <- function(dataset){
   return(results)
   
 }
+
 
 
 

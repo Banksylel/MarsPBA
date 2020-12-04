@@ -171,7 +171,7 @@ getTreeClassifications<-function(myTree,
 #         :   Data Frame     - measures  - performance metrics
 #
 # ************************************************
-randomForest<-function(train,test,plot=TRUE, forestSize=FOREST_SIZE, maxNodes=MAX_NODES, mtry=MTRY){
+randomForest<-function(train,test,plot=TRUE, forestSize=FOREST_SIZE, maxNodes=MAX_NODES, mtry=MTRY,...){
   myTitle<-(paste("Preprocessed Dataset. Random Forest=",FOREST_SIZE,"trees"))
   print(myTitle)
   positionClassOutput<-which(names(train)==OUTPUT_FIELD)

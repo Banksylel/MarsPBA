@@ -19,6 +19,9 @@
 
 DATASET_FILENAME  <- "telco-data.csv"     # Name of input dataset file
 OUTPUT_FIELD      <- "Churn"              # Field name of the output class to predict
+CUSTOMER_LIFETIME_FIELD  <- "tenure"              # Field name of the output class to predict
+MONTHLY_CHARGES_FIELD  <- "monthly_charges"              # Field name of the output class to predict
+
 
 SCALE_DATASET     <- TRUE                 # Set to true to scale dataset before ML stage
 OUTLIER_CONF      <- 0.9                  # Confidence p-value for outlier detection
@@ -67,7 +70,7 @@ MYLIBRARIES<-c("outliers",
 # OUTPUT      :   Pre-processed dataset
 #
 # ************************************************
-mars_GetPreprocessedDataset<-function(scaleflag = TRUE, printflag = FALSE){
+mars_GetPreprocessedDataset<-function(scaleflag = TRUE, printflag = FALSE, balanceflag=TRUE){
   
   if(printflag){
     print("Inside main function")
@@ -79,19 +82,21 @@ mars_GetPreprocessedDataset<-function(scaleflag = TRUE, printflag = FALSE){
   
   print(getMode(dataset$tenure))
   
-  
-  #*************************************************
-  #Return all rows that have churned. There are 1869 rows
-  y <-dataset[dataset$Churn == "Yes", ]
-  #Return rows that not churned.
-  n <- dataset[dataset$Churn == "No", ]
-  #Shuffle these rows and select 1869 rows.
-  set.seed(42)
-  n_shuffled <- n[sample(1:nrow(n)), ]
-  n_final <- n_shuffled[1:nrow(y), ]  
-  #Return balanced and shuffled dataset
-  yandn <- rbind(y, n_final)
-  dataset <- yandn[sample(1:nrow(yandn)), ]
+  if(balanceflag){
+    #*************************************************
+    #Return all rows that have churned. There are 1869 rows
+    y <-dataset[dataset$Churn == "Yes", ]
+    #Return rows that not churned.
+    n <- dataset[dataset$Churn == "No", ]
+    #Shuffle these rows and select 1869 rows.
+    set.seed(42)
+    n_shuffled <- n[sample(1:nrow(n)), ]
+    n_final <- n_shuffled[1:nrow(y), ]  
+    #Return balanced and shuffled dataset
+    yandn <- rbind(y, n_final)
+    dataset <- yandn[sample(1:nrow(yandn)), ]
+  }
+
   
   p<-ggplot(dataset, aes(x=tenure, y = TotalCharges)) + geom_point()
   print(p)

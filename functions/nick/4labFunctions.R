@@ -128,118 +128,10 @@ NdetermineThreshold<-function(test_predicted,
                               test_expected,
                               plot=TRUE,
                               title=""){
-  toPlot<-data.frame()
 
-  #Vary the threshold
-  for(threshold in seq(0,1,by=0.01)){
-    results<-NEvaluateClassifier(test_predicted=test_predicted,
-                                  test_expected=test_expected,
-                                  threshold=threshold)
-    toPlot<-rbind(toPlot,data.frame(x=threshold,fpr=results$FPR,tpr=results$TPR))
-  }
-
-  # the Youden index is the vertical distance between the 45 degree line
-  # and the point on the ROC curve.
-  # Higher values of the Youden index are better than lower values.
-  # https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5082211/
-  # Youdan = sensitivty + specificity -1
-  #        = TPR + (1-FPR) -1
-
-  toPlot$youdan<-toPlot$tpr+(1-toPlot$fpr)-1
-
-  # 121020NRT - max Youdan
-  # use which.max() to return a single index to the higest value in the vector
-  maxYoudan<-toPlot$x[which.max(toPlot$youdan)]
-
-  # Euclidean distance sqrt((1 − sensitivity)^2+ (1 − specificity)^2)
-  # To the top left (i.e. perfect classifier)
-  toPlot$distance<-sqrt(((100-toPlot$tpr)^2)+((toPlot$fpr)^2))
-
-  # 121020NRT - Euclidean distance to "perfect" classifier (smallest the best)
-  # use which.min() to return a single index to the lowest value in the vector
-  minEuclidean<-toPlot$x[which.min(toPlot$distance)]
-
-  # ************************************************
-  # Plot threshold graph
-
-  if (plot==TRUE){
-    # Sensitivity (TPR)
-    plot(toPlot$x,toPlot$tpr,
-         xlim=c(0, 1), ylim=c(0, 100),
-         type="l",lwd=3, col="blue",
-         xlab="Threshold",
-         ylab="%Rate",
-         main=paste("Threshold Perfomance Classifier Model",title))
-
-    # Plot the specificity (1-FPR)
-    lines(toPlot$x,100-toPlot$fpr,type="l",col="red",lwd=3,lty=1)
-
-    # The point where specificity and sensitivity are the same
-    crosspoint<-toPlot$x[which(toPlot$tpr<(100-toPlot$fpr))[1]]
-
-    if (!is.na(crosspoint)){
-      if ((crosspoint<1) & (crosspoint>0))
-        abline(v=crosspoint,col="red",lty=3,lwd=2)
-    }
-
-    # Plot the Euclidean distance to "perfect" classifier (smallest the best)
-    lines(toPlot$x,toPlot$distance,type="l",col="green",lwd=2,lty=3)
-
-    # Plot the min distance, as might be more (311019NRT check it is within range)
-    if ((minEuclidean<1) & (minEuclidean>0))
-      abline(v=minEuclidean,col="green",lty=3,lwd=2)
-
-    # Youdan (Vertical distance between the 45 degree line and the point on the ROC curve )
-    lines(toPlot$x,toPlot$youdan,type="l",col="purple",lwd=2,lty=3)
-
-    if ((maxYoudan<1) & (maxYoudan>0))
-      abline(v=maxYoudan,col="purple",lty=3,lwd=2)
-
-    legend("bottom",c("TPR","1-FPR","Distance","Youdan"),col=c("blue","red","green","purple"),lty=1:2,lwd=2)
-    text(x=0,y=50, adj = c(-0.2,2),cex=1,col="black",paste("THRESHOLDS:\nEuclidean=",minEuclidean,"\nYoudan=",maxYoudan))
-
-    # ************************************************
-    # 121020NRT ROC graph
-
-    sensitivityROC<-toPlot$tpr[which.min(toPlot$distance)]
-    specificityROC<-100-toPlot$fpr[which.min(toPlot$distance)]
-    auc<-auroc(score=test_predicted,bool=test_expected) # Estimate the AUC
-
-    # Set origin point for plotting
-    toPlot<-rbind(toPlot,data.frame(x=0,fpr=0,tpr=0, youdan=0,distance=0))
-
-    plot(100-toPlot$fpr,toPlot$tpr,type="l",lwd=3, col="black",
-         main=paste("ROC:",title),
-         xlab="Specificity (1-FPR) %",
-         ylab="Sensitivity (TPR) %",
-         xlim=c(100,0),
-         ylim=c(0,100)
-    )
-
-    axis(1, seq(0.0,100,10))
-    axis(2, seq(0.0,100,10))
-
-    #Add crosshairs to the graph
-    abline(h=sensitivityROC,col="red",lty=3,lwd=2)
-    abline(v=specificityROC,col="red",lty=3,lwd=2)
-
-    annotate<-paste("Threshold: ",round(minEuclidean,digits=4L),
-                    "\nTPR: ",round(sensitivityROC,digits=2L),
-                    "%\n1-FPR: ",round(specificityROC,digits=2L),
-                    "%\nAUC: ",round(auc,digits=2L),sep="")
-
-    text(x=specificityROC, y=sensitivityROC, adj = c(-0.2,1.2),cex=1, col="red",annotate)
-
-  } # endof if plotting
-
-  # Select the threshold - I have choosen distance
-
-  myThreshold<-minEuclidean      # Min Distance should be the same as analysis["threshold"]
-
-  if(is.na(myThreshold)){
-    myThreshold="NA"
-  }
-  #Use the "best" distance threshold to evaluate classifier
+  myThreshold <-  NcalculateThreshold(test_predicted, test_expected, plot=plot, title=title)
+  
+    #Use the "best" distance threshold to evaluate classifier
   results<-NEvaluateClassifier(test_predicted=test_predicted,
                                 test_expected=test_expected,
                                 threshold=myThreshold)
@@ -249,6 +141,127 @@ NdetermineThreshold<-function(test_predicted,
 
   return(results)
 } #endof myPerformancePlot()
+
+
+NcalculateThreshold<-function(test_predicted,
+                              test_expected,
+                              plot=TRUE,
+                              title=""){
+  toPlot<-data.frame()
+  
+  #Vary the threshold
+  for(threshold in seq(0,1,by=0.01)){
+    results<-NEvaluateClassifier(test_predicted=test_predicted,
+                                 test_expected=test_expected,
+                                 threshold=threshold)
+    toPlot<-rbind(toPlot,data.frame(x=threshold,fpr=results$FPR,tpr=results$TPR))
+  }
+  
+  # the Youden index is the vertical distance between the 45 degree line
+  # and the point on the ROC curve.
+  # Higher values of the Youden index are better than lower values.
+  # https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5082211/
+  # Youdan = sensitivty + specificity -1
+  #        = TPR + (1-FPR) -1
+  
+  toPlot$youdan<-toPlot$tpr+(1-toPlot$fpr)-1
+  
+  # 121020NRT - max Youdan
+  # use which.max() to return a single index to the higest value in the vector
+  maxYoudan<-toPlot$x[which.max(toPlot$youdan)]
+  
+  # Euclidean distance sqrt((1 − sensitivity)^2+ (1 − specificity)^2)
+  # To the top left (i.e. perfect classifier)
+  toPlot$distance<-sqrt(((100-toPlot$tpr)^2)+((toPlot$fpr)^2))
+  
+  # 121020NRT - Euclidean distance to "perfect" classifier (smallest the best)
+  # use which.min() to return a single index to the lowest value in the vector
+  minEuclidean<-toPlot$x[which.min(toPlot$distance)]
+  
+  # ************************************************
+  # Plot threshold graph
+  
+  if (plot==TRUE){
+    # Sensitivity (TPR)
+    plot(toPlot$x,toPlot$tpr,
+         xlim=c(0, 1), ylim=c(0, 100),
+         type="l",lwd=3, col="blue",
+         xlab="Threshold",
+         ylab="%Rate",
+         main=paste("Threshold Perfomance Classifier Model",title))
+    
+    # Plot the specificity (1-FPR)
+    lines(toPlot$x,100-toPlot$fpr,type="l",col="red",lwd=3,lty=1)
+    
+    # The point where specificity and sensitivity are the same
+    crosspoint<-toPlot$x[which(toPlot$tpr<(100-toPlot$fpr))[1]]
+    
+    if (!is.na(crosspoint)){
+      if ((crosspoint<1) & (crosspoint>0))
+        abline(v=crosspoint,col="red",lty=3,lwd=2)
+    }
+    
+    # Plot the Euclidean distance to "perfect" classifier (smallest the best)
+    lines(toPlot$x,toPlot$distance,type="l",col="green",lwd=2,lty=3)
+    
+    # Plot the min distance, as might be more (311019NRT check it is within range)
+    if ((minEuclidean<1) & (minEuclidean>0))
+      abline(v=minEuclidean,col="green",lty=3,lwd=2)
+    
+    # Youdan (Vertical distance between the 45 degree line and the point on the ROC curve )
+    lines(toPlot$x,toPlot$youdan,type="l",col="purple",lwd=2,lty=3)
+    
+    if ((maxYoudan<1) & (maxYoudan>0))
+      abline(v=maxYoudan,col="purple",lty=3,lwd=2)
+    
+    legend("bottom",c("TPR","1-FPR","Distance","Youdan"),col=c("blue","red","green","purple"),lty=1:2,lwd=2)
+    text(x=0,y=50, adj = c(-0.2,2),cex=1,col="black",paste("THRESHOLDS:\nEuclidean=",minEuclidean,"\nYoudan=",maxYoudan))
+    
+    # ************************************************
+    # 121020NRT ROC graph
+    
+    sensitivityROC<-toPlot$tpr[which.min(toPlot$distance)]
+    specificityROC<-100-toPlot$fpr[which.min(toPlot$distance)]
+    auc<-auroc(score=test_predicted,bool=test_expected) # Estimate the AUC
+    
+    # Set origin point for plotting
+    toPlot<-rbind(toPlot,data.frame(x=0,fpr=0,tpr=0, youdan=0,distance=0))
+    
+    plot(100-toPlot$fpr,toPlot$tpr,type="l",lwd=3, col="black",
+         main=paste("ROC:",title),
+         xlab="Specificity (1-FPR) %",
+         ylab="Sensitivity (TPR) %",
+         xlim=c(100,0),
+         ylim=c(0,100)
+    )
+    
+    axis(1, seq(0.0,100,10))
+    axis(2, seq(0.0,100,10))
+    
+    #Add crosshairs to the graph
+    abline(h=sensitivityROC,col="red",lty=3,lwd=2)
+    abline(v=specificityROC,col="red",lty=3,lwd=2)
+    
+    annotate<-paste("Threshold: ",round(minEuclidean,digits=4L),
+                    "\nTPR: ",round(sensitivityROC,digits=2L),
+                    "%\n1-FPR: ",round(specificityROC,digits=2L),
+                    "%\nAUC: ",round(auc,digits=2L),sep="")
+    
+    text(x=specificityROC, y=sensitivityROC, adj = c(-0.2,1.2),cex=1, col="red",annotate)
+    
+  } # endof if plotting
+  
+  # Select the threshold - I have choosen distance
+  
+  myThreshold<-minEuclidean      # Min Distance should be the same as analysis["threshold"]
+  
+  if(is.na(myThreshold)){
+    myThreshold="NA"
+  }
+  
+  return(myThreshold)
+} #endof myPerformancePlot()
+
 
 # ************************************************
 # NprintDTRules() :
@@ -326,7 +339,7 @@ N_DEEP_Initialise<-function(reproducible=TRUE){
 
   library(h2o)
 
-  print("Initialise the H2O server")
+  #print("Initialise the H2O server")
   #Initialise the external h20 deep learning local server if needed
   #130517NRT - set nthreads to -1 to use maximum so fast, but set to 1 to get reproducable results
   #080819NRT - use reproducable parameter
@@ -334,9 +347,9 @@ N_DEEP_Initialise<-function(reproducible=TRUE){
     nthreads<-1
   else
     nthreads<- -1
-
+  
+  
   h2o.init(max_mem_size = "5g",nthreads = nthreads)
-
   h2o.removeAll() # 261019NRT clean slate - just in case the cluster was already running
   #h2o.no_progress()
 }
@@ -399,7 +412,8 @@ N_DEEP_TrainClassifier<- function(train,
                               l1 = 1e-2,
                               l2 = 1e-2,
                               variable_importances = TRUE,
-                              reproducible = TRUE)
+                              reproducible = TRUE,
+                              quiet_mode = TRUE)
   return(deep)
 }
 

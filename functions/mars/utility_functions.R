@@ -13,6 +13,15 @@
 #   1.00      11/11/2020    Chris Jennings    Initial Version
 
 
+saveModelToFile <- function(modelName, model){
+  saveRDS(model, paste("Models/",modelName,".rda", sep=""))
+}
+
+loadModelFromFile <-function(modelName){
+  model <- readRDS(paste("Models/",modelName,".rda",sep=""))
+  return(model)
+}
+
 
 keepFields <- function(dataset,fieldNames){
   sub <- dataset[ , (names(dataset) %in% fieldNames)]
@@ -29,7 +38,11 @@ kfold <-  function(dataset, k, FUN,...){
   print(paste("Running K-Fold cross validation with", k, "folds"))
 
   dataset <- PREPROCESSING_stratDataset(dataset, k)
-  dataset <- dataset[order(runif(nrow(dataset))),]
+  randomisationOrder <- order(runif(nrow(dataset)))
+  
+  dataset <- dataset[randomisationOrder,]
+
+  
   
   results <-  data.frame()
   
@@ -48,7 +61,7 @@ kfold <-  function(dataset, k, FUN,...){
   
   avgs <-  colMeans(results)
   avgs[1:4] <-  as.integer(round(avgs[1:4]))
-  avgs[5:13] <-  round(avgs[5:13], digits=2)
+  avgs[5:length(avgs)] <-  round(avgs[5:length(avgs)], digits=2)
   
   return(avgs)
 }
