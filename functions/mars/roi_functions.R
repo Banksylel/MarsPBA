@@ -66,26 +66,37 @@ evaluateModel <- function(predicted, expected, threshold, monthlyCharges, acquis
     customerValue <-  estimateCustomerValue(monthlyCharges[i] ,avgTenure)
     
     if(predicted[i]==1){
+      customerEnticementSpend <- customerValue*enticementPercent
       
-      if(monthlyCharges[i]>minEnticementThreshold){
-        customerEnticementSpend <- customerValue*enticementPercent
-        
-      }else{
-        customerEnticementSpend <- 0
-        
-      }
+      
 
+      
       #False Positive, wrongly enticed customers
       if(expected[i]==0){
         results$FP <- results$FP + 1
-        wronglyEnticedCost <- wronglyEnticedCost+customerEnticementSpend
         
+        #if we spend
+        if(monthlyCharges[i]>minEnticementThreshold){
+          wronglyEnticedCost <- wronglyEnticedCost+customerEnticementSpend
+          
+        }
+        
+
         
       #True Positive
       }else{
         results$TP <- results$TN + 1
         
-        correctlyEnticedCost <- correctlyEnticedCost+customerEnticementSpend
+        #if we spend
+        if(monthlyCharges[i]>minEnticementThreshold){
+          correctlyEnticedCost <- correctlyEnticedCost+customerEnticementSpend
+          
+        }else{
+          costToReplaceWithModel <- costToReplaceWithModel + acquisitionCost
+          lostRevenueWithModel <- lostRevenueWithModel + customerValue
+        }
+        
+        
         costToReplaceWithoutModel <- costToReplaceWithoutModel + acquisitionCost
         lostRevenueWithoutModel <- lostRevenueWithoutModel+customerValue
         
@@ -163,15 +174,9 @@ calculateModelROI<-function(acquisitionCost, enticementPercent,minEnticementThre
 } #endof main()
 
 
-varyspend <- function(){
-  results <- c()
-  for(i in seq(20,80,by=5)){
-    res <- calculateModelROI(750,0.1,35)
-    results <- append(results,res['ROI'])
-    
-  }
-  print(results)
-}
+plot
+
+
 
 # Loads the libraries
 library(pacman)
@@ -191,4 +196,5 @@ source("functions/mars/ensemble.R")
 
 
 calculateModelROI(750,0.1,25)
+
 
