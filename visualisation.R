@@ -15,8 +15,8 @@ library(ggplot2)
 library(cowplot)
 
 #values for changing the colour of the bar graphs
-yesColour <- "#ff6961"
-noColour <- "#83F283"
+yesColour <- "#FFABAB"
+noColour <- "#AFF8DB"
 
 
 
