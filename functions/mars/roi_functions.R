@@ -85,7 +85,7 @@ evaluateModel <- function(predicted, expected, threshold, monthlyCharges, acquis
         
       #True Positive
       }else{
-        results$TP <- results$TN + 1
+        results$TP <- results$TP + 1
         
         #if we spend
         if(monthlyCharges[i]>minEnticementThreshold){
@@ -107,7 +107,7 @@ evaluateModel <- function(predicted, expected, threshold, monthlyCharges, acquis
       
       #True Negative
       if(expected[i]==0){
-        results$TN <- results$TP + 1
+        results$TN <- results$TN + 1
         
       #False Negative
       }else{
@@ -128,9 +128,12 @@ evaluateModel <- function(predicted, expected, threshold, monthlyCharges, acquis
   results$lostRevenueWithoutModel <- lostRevenueWithoutModel
   results$costToReplaceWithModel <- costToReplaceWithModel
   results$costToReplaceWithoutModel <- costToReplaceWithoutModel
-  results$totalSpendWithoutModel <- results$costToReplaceWithoutModel
   results$totalSpendWithModel <- results$costToReplaceWithModel+results$totalEnticementSpend
-  results$ROI <- results$costToReplaceWithoutModel/results$totalSpendWithModel
+  results$totalSpendWithoutModel <- results$costToReplaceWithoutModel
+  
+  netReturn <- results$totalSpendWithoutModel-results$totalSpendWithModel
+  roi <- round((netReturn/results$totalEnticementSpend)*100,2)
+  results$ROI <- roi
   return(results)
 }
 
@@ -162,10 +165,13 @@ calculateModelROI<-function(acquisitionCost, enticementPercent,minEnticementThre
   results <- evaluateModel(ensemblePredictions, test_expected, threshold, test_monthlyCharges, acquisitionCost, enticementPercent,minEnticementThreshold)
   print(results)
   NprintMeasures(results, "Ensemble model test results")
+  plotResults(results, round=TRUE)
   
-  results <-  kfold(scaledTrain, 5, ensembleROI, monthlyCharges=unscaledTrain[,'MonthlyCharges'], acquisitionCost=acquisitionCost, enticementPercent = enticementPercent,minEnticementThreshold=minEnticementThreshold)
-  print(results)
-  NprintMeasures(results, "Ensemble model validation results")
+  
+  #results <-  kfold(scaledTrain, 5, ensembleROI, monthlyCharges=unscaledTrain[,'MonthlyCharges'], acquisitionCost=acquisitionCost, enticementPercent = enticementPercent,minEnticementThreshold=minEnticementThreshold)
+  #print(results)
+  #NprintMeasures(results, "Ensemble model validation results")
+  #plotResults(results)
   
 
   
@@ -174,7 +180,47 @@ calculateModelROI<-function(acquisitionCost, enticementPercent,minEnticementThre
 } #endof main()
 
 
-plot
+plotResults <- function(results, round=TRUE){
+  
+  totalEnticementSpend <-  as.vector(as.numeric(results["totalEnticementSpend"]))
+  totalEnticementSpend <- append(totalEnticementSpend,0)
+  
+  costToReplace <- as.vector(as.numeric(results["costToReplaceWithModel"]))
+  costToReplace <- append(costToReplace,as.numeric(results["costToReplaceWithoutModel"]))
+  
+  totalSpend <- as.vector(as.numeric(results["totalSpendWithModel"]))
+  totalSpend <- append(totalSpend,as.numeric(results["totalSpendWithoutModel"]))
+  
+  if(round){
+    totalEnticementSpend <- round(totalEnticementSpend,-3)
+    costToReplace <- round(costToReplace,-3)
+    totalSpend <- round(totalSpend,-3)
+    
+  }
+  
+  df = melt(data.frame("Total Enticement Spend"=totalEnticementSpend, "Cost To Replace Lost Subscribers"=costToReplace, "Total Spend"=totalSpend, 
+                       experiment=c("With Model","Without Model")),
+            variable_name="Metric")
+  
+  p <- ggplot(df, aes(experiment, value, fill=Metric)) + 
+    geom_bar(position="dodge", stat='identity')+
+    theme(axis.title.x=element_blank(),
+          axis.title.y=element_blank(),
+          axis.text.y=element_blank(),
+          axis.ticks.y=element_blank())+
+    geom_text(aes(label=dollarValueToFormattedString(value)), position=position_dodge(width=0.9), vjust=-0.25)
+  
+  
+  print(p)
+}
+
+dollarValueToFormattedString <- function(value){
+  value <-  round(value,digits=0)
+  value <- format(value,big.mark=",",scientific=FALSE)
+  value <- trimws(value, which = "both", whitespace = " ")
+  value <- paste("$", value, sep="")
+  return(value)
+}
 
 
 
