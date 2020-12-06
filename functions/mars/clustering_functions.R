@@ -225,11 +225,18 @@ createKmeansModel<-function(dataset){
   positionOutput<-which(names(dataset)==OUTPUT_FIELD)
   predictors<-dataset[,-positionOutput]
   
+  originalDataset <- NreadDataset(DATASET_FILENAME)
+  
+  rows <- as.integer(row.names(dataset))
+  
   modelKmeans <- kmeans(x=predictors, centers=5, nstart=25)
   
-  originalDataset <- mars_GetPreprocessedDataset(scaleflag = FALSE, printflag=FALSE)
-  
-  visualiseClusters(originalDataset,modelKmeans)
+  originalValueDataset <- dataset
+  originalValueDataset[,c('tenure', 'MonthlyCharges', 'TotalCharges')] <- originalDataset[rows,c('tenure', 'MonthlyCharges', 'TotalCharges')]
+  print(rows)
+
+  print(originalDataset)
+  visualiseClusters(originalValueDataset,modelKmeans)
   
 
  
