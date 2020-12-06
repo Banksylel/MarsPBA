@@ -13,6 +13,8 @@
 #   1.10      15/11/2020    Brian Nyathi      + Generalisations
 # *************************************************************
 
+COLOUR_PALLETE <- c("#8accff", "#ff8792", "#adffbf", "#ffff9e", "#ffcf99","#ff7de5")
+
 
 KFOLDS           <- 5
 
@@ -117,10 +119,10 @@ visualiseClusters <- function(dataset, kmeansModel){
     
   }
   print(formattable::formattable(results))
-  p<-ggplot(dataset, aes(x=tenure, y = MonthlyCharges)) + geom_point(color = factor(kmeansModel$cluster))
+  p<-ggplot(dataset, aes(x=tenure, y = MonthlyCharges)) + geom_point(color = COLOUR_PALLETE[kmeansModel$cluster])
   print(p)
   
-  p<-ggplot(dataset, aes(x=tenure, y = TotalCharges)) + geom_point(color = factor(kmeansModel$cluster))+ theme(legend.position="right")
+  p<-ggplot(dataset, aes(x=tenure, y = TotalCharges)) + geom_point(color = COLOUR_PALLETE[kmeansModel$cluster])+ theme(legend.position="right")
   
   print(p) 
 
@@ -140,8 +142,8 @@ plotClusterFamilyStatistics <- function(results){
             variable_name="Family")
   
   p <- ggplot(df, aes(experiment, value, fill=Family)) + 
-    geom_bar(position="dodge", stat='identity')+labs(title="Family statistics by ratio in clusters",
-                                                     x ="Cluster", y = "Ratio")
+    geom_bar(position="dodge", stat='identity')+labs(
+                                                     x ="Cluster", y = "Ratio")+ scale_fill_manual(values = COLOUR_PALLETE)+ theme(axis.title.x=element_blank(),axis.title.y=element_blank(),legend.title = element_blank())+ scale_y_continuous(labels = scales::percent_format(accuracy = 1))
   
   print(p)
   
@@ -150,16 +152,15 @@ plotClusterFamilyStatistics <- function(results){
 
 plotClusterChurnRates <- function(results){
   yes <- as.numeric(as.vector(results[,"Churn"]))
-  no <- as.numeric(as.vector(1-results[,"Churn"]))
-  
 
-  df = melt(data.frame(Yes=yes, No=no,
+
+  df = melt(data.frame(Yes=yes,
                        experiment=c("Cluster 1","Cluster 2", "Cluster 3", "Cluster 4", "Cluster 5")),
             variable_name="Churn")
   
-  p <- ggplot(df, aes(experiment, value, fill=Churn)) + 
-    geom_bar(position="dodge", stat='identity')+labs(title="Churn rates per cluster",
-                                                     x ="Cluster", y = "Churn Rate")
+  p <- ggplot(df, aes(experiment, value, fill='Churn', width=0.8, label=paste(toString(value*100),'%'))) + 
+    geom_bar(position="dodge", stat='identity')+labs(
+                                                     x ="Cluster", y = "Churn Rate")+ theme(axis.title.x=element_blank(),axis.title.y=element_blank(),legend.title = element_blank(),legend.position = "none" )+ scale_fill_manual(values = COLOUR_PALLETE)+ scale_y_continuous(labels = scales::percent_format(accuracy = 1))
   
   print(p)
   
@@ -177,8 +178,8 @@ plotClusterContractRates <- function(results){
             variable_name="ContractLength")
   
   p <- ggplot(df, aes(experiment, value, fill=ContractLength)) + 
-    geom_bar(position="dodge", stat='identity')+labs(title="Contract length rates per cluster",
-                                                     x ="Cluster", y = "Contract length rate")
+    geom_bar(position="dodge", stat='identity')+labs(
+                                                     x ="Cluster", y = "Contract length rate")+ scale_fill_manual(values = COLOUR_PALLETE)+ theme(axis.title.x=element_blank(),axis.title.y=element_blank(),legend.title = element_blank())+ scale_y_continuous(labels = scales::percent_format(accuracy = 1))
   
   print(p)
   
@@ -187,22 +188,20 @@ plotClusterServiceSubscriptionRates <- function(results){
   addonsNames <- c("InternetService_OnlineSecurity", "InternetService_OnlineBackup", "InternetService_DeviceProtection","InternetService_TechSupport", "InternetService_StreamingTV", "InternetService_StreamingMovies")
   addonsDF <- results[,addonsNames]
   
-  #Add baseline for plot clarity
-  addonsDF[,] <- addonsDF[,]+0.002
+  onlineSecurity <- as.numeric(as.vector(results[,"InternetService_OnlineSecurity"]))
+  onlineBackup <- as.numeric(as.vector(results[,"InternetService_OnlineBackup"]))
+  deviceProtection <- as.numeric(as.vector(results[,"InternetService_DeviceProtection"]))
+  techSupport <- as.numeric(as.vector(results[,"InternetService_TechSupport"]))
+  streamingTV <- as.numeric(as.vector(results[,"InternetService_StreamingTV"]))
+  streamingMovies <- as.numeric(as.vector(results[,"InternetService_StreamingMovies"]))
   
-  cluster1 <- as.numeric(as.vector(addonsDF[1,]))
-  cluster2 <- as.numeric(as.vector(addonsDF[2,]))
-  cluster3 <- as.numeric(as.vector(addonsDF[3,]))
-  cluster4 <- as.numeric(as.vector(addonsDF[4,]))
-  cluster5 <- as.numeric(as.vector(addonsDF[5,]))
-  
-  df = melt(data.frame(Cluster1=cluster1, Cluster2=cluster2,Cluster3=cluster3, Cluster4=cluster4, Cluster5=cluster5,
-                       experiment=c("Online Security","Online Backup","Device Protection","Tech Support","Streaming TV","Steaming Movies")),
+  df = melt(data.frame(OnlineSecurity=onlineSecurity,OnlineBackup=onlineBackup, DeviceProtection = deviceProtection, TechSupport=techSupport, StreamingTV=streamingTV, StreamingMovies=streamingMovies,
+                       experiment=c("Cluster 1", "Cluster 2", "Cluster 3", "Cluster 4", "Cluster 5")),
             variable_name="cluster")
   
   p <- ggplot(df, aes(experiment, value, fill=cluster)) + 
-    geom_bar(position="dodge", stat='identity')+labs(title="Service subscription rates per cluster",
-                                                     x ="Service", y = "Subscription Rate")
+    geom_bar(position="dodge", stat='identity')+labs(
+                                                     x ="Service", y = "Subscription Rate")+ scale_fill_manual(values = COLOUR_PALLETE)+ theme(axis.title.x=element_blank(),axis.title.y=element_blank(),legend.title = element_blank() )+ scale_y_continuous(labels = scales::percent_format(accuracy = 1))
   
   print(p)
 }
@@ -228,8 +227,6 @@ createKmeansModel<-function(dataset){
   
   modelKmeans <- kmeans(x=predictors, centers=5, nstart=25)
   
-  print(str(modelKmeans))
-  
   originalDataset <- mars_GetPreprocessedDataset(scaleflag = FALSE, printflag=FALSE)
   
   visualiseClusters(originalDataset,modelKmeans)
@@ -253,4 +250,6 @@ source("functions/nick/lab2functions.R")   # From Prof Nick's lab
 source("functions/mars/data_pre_processing_functions.R")
 source("functions/mars/data_pre_processing_pipeline.R")
 
-
+fullDataset <-  mars_GetPreprocessedDataset(scaleflag=TRUE, printflag=FALSE, balanceflag=TRUE)
+##Run clustering evaluation
+kMeansModel <-createKmeansModel(fullDataset)
