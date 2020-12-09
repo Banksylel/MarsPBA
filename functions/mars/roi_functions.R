@@ -157,7 +157,7 @@ calculateModelROI<-function(acquisitionCost, enticementPercent,minEnticementThre
 
   # ##Train an ensemble model on the full train set and output final test measures
   ensembleModel <- createEnsembleModel(scaledTrain)
-  ensemblePredictions <- ensemblePredictMean(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel,test)
+  ensemblePredictions <- ensemblePredictVote(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel,test)
   ensembleTestResults<-NdetermineThreshold(ensemblePredictions,test_expected,plot=FALSE)
   NprintMeasures(ensembleTestResults, "Ensemble model final test evaluation")
 
@@ -168,10 +168,10 @@ calculateModelROI<-function(acquisitionCost, enticementPercent,minEnticementThre
   plotResults(results, round=TRUE)
   
   
-  #results <-  kfold(scaledTrain, 5, ensembleROI, monthlyCharges=unscaledTrain[,'MonthlyCharges'], acquisitionCost=acquisitionCost, enticementPercent = enticementPercent,minEnticementThreshold=minEnticementThreshold)
-  #print(results)
-  #NprintMeasures(results, "Ensemble model validation results")
-  #plotResults(results)
+  results <-  kfold(scaledTrain, 5, ensembleROI, monthlyCharges=unscaledTrain[,'MonthlyCharges'], acquisitionCost=acquisitionCost, enticementPercent = enticementPercent,minEnticementThreshold=minEnticementThreshold)
+  print(results)
+  NprintMeasures(results, "Ensemble model validation results")
+  plotResults(results, round=TRUE)
   
 
   

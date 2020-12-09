@@ -65,14 +65,11 @@ ensemble <- function(train,test,...){
   
   ensembleModel <- createEnsembleModel(train)
   
-  ensemblePredictions <-  ensemblePredictMean(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel, test)
-  #ensemblePredictions <-  ensemblePredictVote(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel, test)
+  #ensemblePredictions <-  ensemblePredictMean(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel, test)
+  ensemblePredictions <-  ensemblePredictVote(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel, test)
   
   test_expected <- test[,OUTPUT_FIELD]
-  results<-NcalcConfusion(expectedClass=test_expected,
-                          predictedClass=ensemblePredictions)
-  results$threshold <- NA
-  results$AUC<-auroc(score=ensemblePredictions,bool=test_expected) # Estimate the AUC
+  results<-NdetermineThreshold(ensemblePredictions, test_expected, plot=FALSE, title="Ensemble results")
   
   return(results)
 }
@@ -89,8 +86,8 @@ ensembleROI <- function(train,test,threshold, monthlyCharges, acquisitionCost, e
   
   ensembleModel <- createEnsembleModel(train)
   
-  ensemblePredictions <-  ensemblePredictMean(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel, test)
-  #ensemblePredictions <-  ensemblePredictVote(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel, test)
+  #ensemblePredictions <-  ensemblePredictMean(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel, test)
+  ensemblePredictions <-  ensemblePredictVote(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel, test)
   
   
   
@@ -167,9 +164,7 @@ ensemblePredictMean <- function(lrModel, rfModel, nnModel, test){
     
   }
   
-  ensembleThreshold <- NdetermineThreshold(ensemblePredictions, test_expected)$threshold
-  ensemblePredictions <-ifelse(ensemblePredictions<ensembleThreshold,0,1)
-  
+
   return(ensemblePredictions)
 }
 

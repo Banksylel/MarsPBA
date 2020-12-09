@@ -131,7 +131,7 @@ reduceFeatures<-function(dataset) {
   features<-data.frame(gsub("[[:blank:]]+", "", row.names(importance)), importance$Overall)
   colnames(features)<-c("Feature", "Overall")
   features<-features[order(-importance$Overall),]
-  
+
   # Reconstruct model formula
   formular<-paste(OUTPUT_FIELD, "~", paste(features$Feature, collapse = "+"))
   

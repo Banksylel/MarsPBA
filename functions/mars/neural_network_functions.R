@@ -12,19 +12,17 @@
 #   UPDATE
 #   1.00      11/11/2020    Chris Jennings    Initial Version
 
-DEEP_HIDDEN       <- c(5,5)               # Number of neurons in each layer
-DEEP_STOPPING     <- 3                    # Number of times no improvement before stop
-DEEP_TOLERANCE    <- 0.015                 # Error threshold
+DEEP_HIDDEN       <- c(6,6)               # Number of neurons in each layer
+DEEP_STOPPING     <- 4                    # Number of times no improvement before stop
+DEEP_TOLERANCE    <- 0.1                 # Error threshold
 DEEP_ACTIVATION   <- "TanhWithDropout"    # Non-linear activation function
 DEEP_REPRODUCABLE <- TRUE                 # Set to TRUE to test training is same for each run
-BASICNN_EPOCHS = 350
 
 HIDDEN_TEST = "Hidden Nodes"
 STOPPING_TEST = "Stopping threshold"
 ACTIVATION_TEST = "Activation function"
 TOLERANCE_TEST = "Error Threshold"
-
-
+BASICNN_EPOCHS=350
 
 
 findOptimalNetworkParameter <- function(dataset, testName, testSet, kfolds){
@@ -50,7 +48,7 @@ findOptimalNetworkParameter <- function(dataset, testName, testSet, kfolds){
       tolerance <- testSet[i]
     }
 
-    results <-  kfold(dataset, 5, deepNeural, hidden=hiddenNodes, stopping_rounds=stopping, activation=activation, stopping_tolerance=tolerance)
+    results <-  kfold(dataset, 5, deepNeural, hidden=hiddenNodes, stopping_rounds=stopping, activation=activation, stopping_tolerance=tolerance, plot=FALSE)
     
     
     results <-  c(hidden=hiddenNodes, stopping_rounds=stopping, stopping_tolerance=tolerance , activation=activation, results)
@@ -78,7 +76,7 @@ findAllOptimalNetworkParameters <- function(dataset, k){
   }
   
   stoppingTests     <- 2:5   
-  toleranceTests <- c(0.005, 0.08, 0.01, 0.12, 0.15, 0.18, 0.2)
+  toleranceTests <- c(0.005, 0.08, 0.1, 0.12, 0.15, 0.18, 0.2)
   activationTests <- c("Tanh", "TanhWithDropout", "Rectifier", "RectifierWithDropout", "Maxout", "MaxoutWithDropout")
   
   findOptimalNetworkParameter(dataset, HIDDEN_TEST, hiddenNodesTests, 5)

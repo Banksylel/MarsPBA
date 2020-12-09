@@ -52,7 +52,7 @@ MYLIBRARIES<-c("outliers",
 
 # User defined functions are next
 
-FOREST_SIZE       <- 3000                 # Number of trees in the forest
+FOREST_SIZE       <- 800                 # Number of trees in the forest
 MAX_NODES <-  20
 MTRY <- 5
 
@@ -87,7 +87,7 @@ testForestParameter <- function(dataset, testName, testSet, kfolds){
       mtry <- testSet[i]
     }
     
-    results <-  kfold(dataset, 5, randomForest, forestSize=forestSize, maxNodes=maxNodes, mtry=mtry)
+    results <-  kfold(dataset, 5, randomForest, forestSize=forestSize, maxNodes=maxNodes, mtry=mtry, plot=FALSE)
     
     
     results <-  c(forestSize=forestSize, maxNodes=maxNodes, mtry=mtry ,results)
@@ -114,9 +114,9 @@ testAllForestParameters <- function(dataset, k){
   maxNodesTests <- c(5: 25, NULL)
   mtryTests <- c(1:10)
   
-  findOptimalForestParameter(dataset, MAX_NODES_TEST, maxNodesTests, 5)
-  findOptimalForestParameter(dataset, FOREST_SIZE_TEST, forestSizeTests, 5)
-  findOptimalForestParameter(dataset, MTRY_TEST, mtryTests, 5)
+  #testForestParameter(dataset, MAX_NODES_TEST, maxNodesTests, 5)
+  #testForestParameter(dataset, FOREST_SIZE_TEST, forestSizeTests, 5)
+  testForestParameter(dataset, MTRY_TEST, mtryTests, 5)
 }
 
 
@@ -173,7 +173,6 @@ getTreeClassifications<-function(myTree,
 # ************************************************
 randomForest<-function(train,test,plot=TRUE, forestSize=FOREST_SIZE, maxNodes=MAX_NODES, mtry=MTRY,...){
   myTitle<-(paste("Preprocessed Dataset. Random Forest=",FOREST_SIZE,"trees"))
-  print(myTitle)
   positionClassOutput<-which(names(train)==OUTPUT_FIELD)
   
   # train data: dataframe with the input fields
@@ -262,7 +261,6 @@ evaluateRandomForestModel<-function(dataset){
   
   dataset <-  keepFields(dataset, keeps)
 
-  
   results <-  kfold(dataset, 5, randomForest, plot=FALSE)
 
   return(results)

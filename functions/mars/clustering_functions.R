@@ -245,18 +245,9 @@ createKmeansModel<-function(dataset){
   
 } #endof main()
 
-# If library not already on your computer this will download and
-# install the library. Each library is activated.
-library(pacman)
-pacman::p_load(char=MYLIBRARIES,install=TRUE,character.only=TRUE)
-
 
 #Source functions
 source("functions/nick/lab3dataPrep.R")    # From Prof Nick's lab
 source("functions/nick/lab2functions.R")   # From Prof Nick's lab
 source("functions/mars/data_pre_processing_functions.R")
 source("functions/mars/data_pre_processing_pipeline.R")
-
-fullDataset <-  mars_GetPreprocessedDataset(scaleflag=TRUE, printflag=FALSE, balanceflag=TRUE)
-##Run clustering evaluation
-kMeansModel <-createKmeansModel(fullDataset)
