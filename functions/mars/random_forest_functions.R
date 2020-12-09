@@ -1,47 +1,24 @@
-# ************************************************
-# This work is licensed under a Creative Commons
-# Attribution-NonCommercial 4.0 International License.
-# ************************************************
-#  PRACTICAL BUSINESS ANALYTICS
-#  COM3018/COMM053
+# *************************************************************
+#   PRACTICAL BUSINESS ANALYTICS
+#   MARS GROUP 
 #
-# Prof. Nick F Ryman-Tubb
-# The Surrey Business School
-# University of Surrey
-# GUILDFORD
-# Surrey GU2 7XH
+#   NEURAL NETWORK FUNCTIONS
 #
-# 16 OCTOBER 2019
+#   
+#   DATE:     15 NOVEMBER 2020
+#   VERSION:  V1.03
+#   AUTHOR:   MARS Team
 #
-# UPDATE
-# 1.00      15/2/2019    Initial Version
-# 1.01      25/2/2019    Updates for MANM module
-# 1.02      16/10/2019   COM3018 / COMM053 2019
-# 1.03      22/10/2019   Added PerformanceAnalytics as a required library
-# 1.04      12/10/2020   Updated for R 4.x
+#   UPDATE
+#   1.00      11/11/2020    Chris Jennings    Initial Version
+#   1.01      12/11/2020    Chris Endacott + Brian Nyathi + Adlan Elias    Implemented Random Forest
+#   1.02      14/11/2020    Chris Endacott + Brian Nyathi + Adlan Elias    Implemented K FOLD
+#   1.03      15/11/2020    Chris Endacott + Brian Nyathi + Adlan Elias    Implemented parameter tuning
 # ************************************************
-# R Script For lab 3
-
-#  clears all objects in "global environment"
-#rm(list=ls())
-
-# ************************************************
-# Global Environment variables
-# - i.e. available to all functions
-# Good practice to place "constants" in named variables
-# I use UPPERCASE to identify these in my code
 
 
 
-# Define and then load the libraries used in this project
-# Library from CRAN     Version
-# pacman	               0.5.1
-# outliers	             0.14
-# corrplot	             0.84
-# MASS	                 7.3.53
-# formattable 	         0.2.0.1
-# stats                  4.0.3
-# PerformanceAnalytics   2.0.4
+
 
 MYLIBRARIES<-c("outliers",
                "corrplot",
@@ -52,7 +29,7 @@ MYLIBRARIES<-c("outliers",
 
 # User defined functions are next
 
-FOREST_SIZE       <- 800                 # Number of trees in the forest
+FOREST_SIZE <- 800                 # Number of trees in the forest
 MAX_NODES <-  20
 MTRY <- 5
 

@@ -1,18 +1,15 @@
 # *************************************************************
 #   PRACTICAL BUSINESS ANALYTICS
 #   MARS GROUP 
-#
-#   LOGISTIC REGRESSION FUNCTIONS
-#
 #   
-#   DATE:     11 NOVEMBER 2020
-#   VERSION:  V1.0
+#   DATE:     06 December 2020
+#   VERSION:  V1.01
 #   AUTHOR:   MARS Team
 #
 #   UPDATE
-#   1.00      11/11/2020    Chris Jennings    Initial Version
-#   1.01      15/11/2020    Chris Jennings    Adopt k-folds
-#   1.02      16/11/2020    Chris Jennings    Fixed bugs
+#   1.00      03/12/2020    Chris Endacott    Initial Version
+#   1.01      06/12/2020    Chris Endacott    Modified ROI calculations
+# ************************************************
 
 
 # Define and then load the libraries used in this project

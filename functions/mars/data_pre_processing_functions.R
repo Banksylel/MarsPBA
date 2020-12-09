@@ -4,13 +4,13 @@
 #   DATA PRE-PROCESSING FUNCTIONS
 #
 #   
-#   DATE:     08 NOVEMBER 2020
-#   VERSION:  V1.0
+#   DATE:     09 NOVEMBER 2020
+#   VERSION:  V1.01
 #   AUTHOR:   MARS Team
 #
 #   UPDATE
 #   1.00      08/11/2020    Chris Jennings    Initial Version
-#   1.10      09/11/2020    Ryan Banks        Added PREPROCESSING_stratDataset, PREPROCESSING_trainTestSplit, PREPROCESSING_stratSplit, and  PREPROCESSING_FoldID functions 
+#   1.01      09/11/2020    Ryan Banks        Added PREPROCESSING_stratDataset, PREPROCESSING_trainTestSplit, PREPROCESSING_stratSplit, and  PREPROCESSING_FoldID functions 
 # # ***********************************************************
 
 # ************************************************

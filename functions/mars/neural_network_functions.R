@@ -5,12 +5,15 @@
 #   NEURAL NETWORK FUNCTIONS
 #
 #   
-#   DATE:     11 NOVEMBER 2020
+#   DATE:     14 NOVEMBER 2020
 #   VERSION:  V1.0
 #   AUTHOR:   MARS Team
 #
 #   UPDATE
 #   1.00      11/11/2020    Chris Jennings    Initial Version
+#   1.01      12/11/2020    Chris Endacott + Ryan Banks + Adlan Elias    Implemented Neural Net
+#   1.02      14/11/2020    Chris Endacott + Ryan Banks + Adlan Elias    Parameter tuning
+# ************************************************
 
 DEEP_HIDDEN       <- c(6,6)               # Number of neurons in each layer
 DEEP_STOPPING     <- 4                    # Number of times no improvement before stop
