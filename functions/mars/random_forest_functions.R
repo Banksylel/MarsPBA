@@ -2,7 +2,7 @@
 #   PRACTICAL BUSINESS ANALYTICS
 #   MARS GROUP 
 #
-#   NEURAL NETWORK FUNCTIONS
+#   RANDOM FOREST FUNCTIONS
 #
 #   
 #   DATE:     15 NOVEMBER 2020
@@ -42,7 +42,17 @@ MTRY_TEST = "MTRY"
 
 
 
-
+# ************************************************
+# Name      :   testForestParameter() :
+# Purpose   :   Run tests to determine optimal forest size
+#
+# INPUT     :   dataset     dataset
+#           :   testName    Name of test
+#           :   testSet     Number of test
+#
+# OUTPUT    :   None
+#
+# ************************************************
 
 testForestParameter <- function(dataset, testName, testSet, kfolds){
   
@@ -85,6 +95,17 @@ testForestParameter <- function(dataset, testName, testSet, kfolds){
   
 }
 
+
+# ************************************************
+# Name      :   testAllForestParameters() :
+# Purpose   :   Wrapper for optimal forest size tests
+#
+# INPUT     :   dataset     dataset
+#
+# OUTPUT    :   None
+#
+# ************************************************
+
 testAllForestParameters <- function(dataset, k){
 
   forestSizeTests <-  c(250, 300, 350, 400, 450, 500, 550, 600, 800, 1000, 2000, 3000, 4000)
@@ -96,6 +117,18 @@ testAllForestParameters <- function(dataset, k){
   testForestParameter(dataset, MTRY_TEST, mtryTests, 5)
 }
 
+
+# ************************************************
+# Name      :   getTreeClassifications() :
+# Purpose   :   Get forest measures
+#
+# INPUT     :   myTree                    Trained forest model
+#           :   testDataset               Test dataset
+#           :   title, classLabel,plot    Graphing parameters
+#
+# OUTPUT    :   None
+#
+# ************************************************
 
 getTreeClassifications<-function(myTree,
                                  testDataset,
@@ -200,6 +233,16 @@ randomForest<-function(train,test,plot=TRUE, forestSize=FOREST_SIZE, maxNodes=MA
   return(measures)
 } #endof randomForest()
 
+
+# ************************************************
+# Name      :   createRandomForestModel() :
+# Purpose   :   Create random forest model
+#
+# INPUT     :   dataset        Train dataset
+#
+# OUTPUT    :   Trained random forest model
+#
+# ************************************************
 
 createRandomForestModel <- function(dataset,print=FALSE){
   positionClassOutput<-which(names(dataset)==OUTPUT_FIELD)

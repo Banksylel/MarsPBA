@@ -28,6 +28,18 @@ TOLERANCE_TEST = "Error Threshold"
 BASICNN_EPOCHS=350
 
 
+# ************************************************
+# Name      :   findOptimalNetworkParameter() :
+# Purpose   :   Find the optimal network parameter
+#
+# INPUT     :   dataset     dataset
+#           :   testName    Name of test
+#           :   testSet     Number of test
+#
+# OUTPUT    :   None
+#
+# ************************************************
+
 findOptimalNetworkParameter <- function(dataset, testName, testSet, kfolds){
   
   hiddenNodes <-  DEEP_HIDDEN
@@ -71,6 +83,17 @@ findOptimalNetworkParameter <- function(dataset, testName, testSet, kfolds){
   
   
 }
+
+
+# ************************************************
+# Name      :   findAllOptimalNetworkParameters() :
+# Purpose   :   Wrapper for optimal NN parameter tests
+#
+# INPUT     :   dataset     dataset
+#
+# OUTPUT    :   None
+#
+# ************************************************
 
 findAllOptimalNetworkParameters <- function(dataset, k){
   hiddenNodesTests <-  list()
@@ -149,6 +172,17 @@ deepNeural<-function(train,test,hidden=DEEP_HIDDEN, stopping_rounds=DEEP_STOPPIN
 } #endof deepNeural()
 
 
+
+# ************************************************
+# Name      :   createNeuralNetworkModel() :
+# Purpose   :   Train NN model
+#
+# INPUT     :   dataset     Train dataset
+#
+# OUTPUT    :   Trained model
+#
+# ************************************************
+
 createNeuralNetworkModel <- function(dataset,print=FALSE){
   N_DEEP_Initialise()
   
@@ -163,6 +197,17 @@ createNeuralNetworkModel <- function(dataset,print=FALSE){
   
   
 }
+
+
+# ************************************************
+# Name      :   evaluateNeuralNetworkModel() :
+# Purpose   :   Evaluate NN mode
+#
+# INPUT     :   dataset      dataset
+#
+# OUTPUT    :   Model performance measures
+#
+# ************************************************
 
 evaluateNeuralNetworkModel <- function(dataset, printflag=FALSE){
   N_DEEP_Initialise()
@@ -185,15 +230,6 @@ source("functions/mars/data_pre_processing_functions.R")
 source("functions/nick/4labfunctions.R")
 source("functions/nick/lab4DataPrepNew.R")
 source("functions/mars/utility_functions.R")
-
-
-
-
-
-
-
-
-
 
 
 print("Sourcing neural_network_functions.R ")

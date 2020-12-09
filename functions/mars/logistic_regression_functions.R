@@ -193,6 +193,15 @@ retention<-function(trainedModel, threshold, dataset, title){
 
 }
 
+# ************************************************
+# Name      :   createLogisticRegressionModel() :
+# Purpose   :   Train logistic regression model
+#
+# INPUT     :   dataset     Train dataset
+#
+# OUTPUT    :   Trained model
+#
+# ************************************************
 
 createLogisticRegressionModel <- function(dataset, print=FALSE){
   # Remove redundant features from model
@@ -205,12 +214,12 @@ createLogisticRegressionModel <- function(dataset, print=FALSE){
 
 
 # ************************************************
-# Name      :   main() :
-# Purpose   :   Main entry point for logistic regression script
+# Name      :   evaluateLogisticRegressionModel() :
+# Purpose   :   Evaluate logistic regression model
 #
-# INPUT     :   None
+# INPUT     :   dataset      Train dataset
 #
-# OUTPUT    :   None
+# OUTPUT    :   Model performance measures
 #
 # ************************************************
 
