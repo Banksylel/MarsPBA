@@ -14,56 +14,21 @@
 # ************************************************
 
 
-# Define and then load the libraries used in this project
-# Library from CRAN     Version
-# pacman	               0.5.1
-# outliers	             0.14
-# corrplot	             0.84
-# MASS	                 7.3.53
-# formattable 	         0.2.0.1
-# stats                  4.0.3
-# PerformanceAnalytics   2.0.4
-
-
-MYLIBRARIES<-c("outliers",
-               "corrplot",
-               "MASS",
-               "formattable",
-               "stats",
-               "caret",
-               "stringr",
-               "PerformanceAnalytics")
-
 # ************************************************
-# Name      :   getLRClassifications() :
-# Purpose   :   Determine "measures" when using optimal threshold
+# Name      :   ensemble() :
+# Purpose   :   Create, train and evaluate an ensemble model
 #
-# INPUT     :   glm object    trainedModel
-#           :   data frame    testDataset
-#           :   Text          Optional title
-#           :   Boolean       Enable plots
+# INPUT     :   data frame    - train     - the train dataset
+#           :   data frame    - test      - the test dataset
 #
-# OUTPUT    :   measures - model performance metrics
+# OUTPUT    :   data frame    - results   - model performance metrics
 #
 # ************************************************
-# ************************************************
-# Name      :   main() :
-# Purpose   :   Main entry point for logistic regression script
-#
-# INPUT     :   None
-#
-# OUTPUT    :   None
-#
-# ************************************************
-
-
-
 ensemble <- function(train,test,...){
-  
-  
   
   ensembleModel <- createEnsembleModel(train)
   
+  #Can optionally switch to mean based predictions
   #ensemblePredictions <-  ensemblePredictMean(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel, test)
   ensemblePredictions <-  ensemblePredictVote(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel, test)
   
@@ -73,7 +38,21 @@ ensemble <- function(train,test,...){
   return(results)
 }
 
-
+# ************************************************
+# Name      :   ensembleROI() :
+# Purpose   :   Create, train and evaluate an ensemble model with respect to business metrics
+#
+# INPUT     :   data frame      - train                    - the train dataset
+#           :   data frame      - test                     - the test dataset
+#           :   double          - threshold                - the threshold for classifying predictions
+#           :   vector double   - monthlyCharges           - the customer original value monthly charges
+#           :   double          - acquisitionCost          - the cost to acquire a new subscriber
+#           :   double          - enticementPercent        - the percentage enticement to retain a subscriber
+#           :   double          - minEnticementThreshold   - the minimum monthlycharges we will offer enticements to
+#
+# OUTPUT    :   data frame      - results                  - evaluated business metrics
+#
+# ************************************************
 ensembleROI <- function(train,test,threshold, monthlyCharges, acquisitionCost, enticementPercent, minEnticementThreshold,...){
   
   #Get the raw monthly charges for each test row
@@ -85,10 +64,9 @@ ensembleROI <- function(train,test,threshold, monthlyCharges, acquisitionCost, e
   
   ensembleModel <- createEnsembleModel(train)
   
+  #Optionally use mean predictions
   #ensemblePredictions <-  ensemblePredictMean(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel, test)
   ensemblePredictions <-  ensemblePredictVote(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel, test)
-  
-  
   
   test_expected <- test[,OUTPUT_FIELD]
   threshold <- NcalculateThreshold(ensemblePredictions, test_expected)
@@ -98,7 +76,15 @@ ensembleROI <- function(train,test,threshold, monthlyCharges, acquisitionCost, e
 }
 
 
-
+# ************************************************
+# Name      :   createEnsembleModel() :
+# Purpose   :   Creates a custom ensembleModel 'Class' 
+#
+# INPUT     :   data frame    - train          - the dataset to train the model with
+#
+# OUTPUT    :   list object   - ensembleModel  - The trained ensemble model
+#
+# ************************************************
 createEnsembleModel <- function(train){
   
   logisticRegressionModel <-  createLogisticRegressionModel(train)
@@ -116,6 +102,20 @@ createEnsembleModel <- function(train){
   
 }
 
+
+
+# ************************************************
+# Name      :   ensemblePredictVote() :
+# Purpose   :   Calculates class predictions using for the custom 'EnsembleModel' class using the 'Vote' method
+#
+# INPUT     :   object           - lrModel              - the ensemble model's logistic regression classifier
+#           :   object           - rfModel              - the ensemble model's random forest classifier
+#           :   object           - nnModel              - the ensemble model's neural network classifier
+#           :   data frame       - test                 - the dataset to predict
+#
+# OUTPUT    :   vector double    - ensemblePredictions  - the class predictions for the input dataset
+#
+# ************************************************
 ensemblePredictVote <- function(lrModel, rfModel, nnModel, test){
   test_expected <- test[,OUTPUT_FIELD]
   
@@ -146,7 +146,18 @@ ensemblePredictVote <- function(lrModel, rfModel, nnModel, test){
   return(ensemblePredictions)
 }
 
-
+# ************************************************
+# Name      :   ensemblePredictMean() :
+# Purpose   :   Calculates class predictions using for the custom 'EnsembleModel' class using the 'Mean average' method
+#
+# INPUT     :   object           - lrModel              - the ensemble model's logistic regression classifier
+#           :   object           - rfModel              - the ensemble model's random forest classifier
+#           :   object           - nnModel              - the ensemble model's neural network classifier
+#           :   data frame       - test                 - the dataset to predict
+#
+# OUTPUT    :   vector double    - ensemblePredictions  - the class predictions for the input dataset
+#
+# ************************************************
 ensemblePredictMean <- function(lrModel, rfModel, nnModel, test){
   test_expected <- test[,OUTPUT_FIELD]
 
@@ -167,7 +178,16 @@ ensemblePredictMean <- function(lrModel, rfModel, nnModel, test){
   return(ensemblePredictions)
 }
 
-
+# ************************************************
+# Name      :   nnPredict() :
+# Purpose   :   Calculates class predictions using a trained neural network model
+#
+# INPUT     :   object           - nnModel              - the trained neural network
+#           :   data frame       - test                 - the dataset to predict
+#
+# OUTPUT    :   vector double    - test_predicted       - the class predictions for the input dataset
+#
+# ************************************************
 nnPredict <- function(model, test){
   test_expected<-test[,OUTPUT_FIELD]
   test_h2o <- as.h2o(test, destination_frame = "testdata")
@@ -178,6 +198,16 @@ nnPredict <- function(model, test){
   return(test_predicted)
 }
 
+# ************************************************
+# Name      :   rfPredict() :
+# Purpose   :   Calculates class predictions using a trained random forest model
+#
+# INPUT     :   object           - rfModel              - the trained random forest model
+#           :   data frame       - test                 - the dataset to predict
+#
+# OUTPUT    :   vector double    - test_predictedProbs  - the class predictions for the input dataset
+#
+# ************************************************
 rfPredict <- function(model, test){
   positionClassOutput=which(names(test)==OUTPUT_FIELD)
   
@@ -199,6 +229,16 @@ rfPredict <- function(model, test){
   
 }
 
+# ************************************************
+# Name      :   lrPredict() :
+# Purpose   :   Calculates class predictions using a logistic regression model
+#
+# INPUT     :   object           - lrModel              - the trained logistic regression model
+#           :   data frame       - test                 - the dataset to predict
+#
+# OUTPUT    :   vector double    - test_predictedProbs  - the class predictions for the input dataset
+#
+# ************************************************
 lrPredict <- function(model, test){
   positionClassOutput=which(names(test)==OUTPUT_FIELD)
   
@@ -211,6 +251,15 @@ lrPredict <- function(model, test){
   return(test_predictedProbs)
 }
 
+# ************************************************
+# Name      :   evaluateEnsembleModel() :
+# Purpose   :   evaluate an ensemble model using k-Fold cross validation
+#
+# INPUT     :   data frame   - dataset    - the train dataset
+#
+# OUTPUT    :   data frame   - results    - the evaluation metrics
+#
+# ************************************************
 evaluateEnsembleModel <- function(dataset){
 
   results <-  kfold(dataset, 5, ensemble)
@@ -218,26 +267,3 @@ evaluateEnsembleModel <- function(dataset){
   return(results)
   
 }
-
-
-
-
-# Loads the libraries
-library(pacman)
-pacman::p_load(char=MYLIBRARIES,install=TRUE,character.only=TRUE)
-
-#This [optionally] sets working directory
-#setwd("")
-
-#Load additional R script files 
-source("functions/mars/data_pre_processing_pipeline.R")
-source("functions/mars/data_pre_processing_functions.R")
-source("functions/nick/4labfunctions.R")
-source("functions/nick/lab4DataPrepNew.R")
-source("functions/nick/lab3DataPrep.R")
-source("functions/mars/utility_functions.R")
-source("functions/mars/logistic_regression_functions.R")
-source("functions/mars/random_forest_functions.R")
-source("functions/mars/neural_network_functions.R")
-
-
