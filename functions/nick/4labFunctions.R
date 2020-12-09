@@ -126,7 +126,7 @@ auroc <- function(score, bool) {
 # ************************************************
 NdetermineThreshold<-function(test_predicted,
                               test_expected,
-                              plot=TRUE,
+                              plot=FALSE,
                               title=""){
 
   myThreshold <-  NcalculateThreshold(test_predicted, test_expected, plot=plot, title=title)

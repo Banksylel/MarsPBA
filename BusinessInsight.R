@@ -26,6 +26,7 @@
 #  clears all objects in "global environment"
 rm(list=ls())
 
+
 MYLIBRARIES<-c("outliers",
                "corrplot",
                "MASS",
@@ -38,11 +39,15 @@ MYLIBRARIES<-c("outliers",
                "reshape")
 
 
+
 DATASET_FILENAME  <- "telco-data.csv"          # Name of input dataset file
 
 #In dollars
 COST_TO_RETAIN <- 750
 
+ENTICEMENT_PERCENTAGE <- 0.1
+
+MINIMUN_ENTICEMENT_THRESHOLD <-  25
 # ************************************************
 # Name      :   main() :
 # Purpose   :   Main entry point for business insight
@@ -55,26 +60,8 @@ COST_TO_RETAIN <- 750
 
 main<-function(){
   
-  fullDataset <-  NreadDataset(DATASET_FILENAME)
-  ##Run preprocessing
-  print("Preprocess the dataset")
-  preProcessedDataSet <-  mars_GetPreprocessedDataset(scaleflag=TRUE, printflag=FALSE)
-  # ##Run ensemble model evaluation
-  print("Print ensemble measures")
+  calculateModelROI(COST_TO_RETAIN,ENTICEMENT_PERCENTAGE,MINIMUN_ENTICEMENT_THRESHOLD)
   
-  measures <-  evaluateEnsembleModel(preProcessedDataSet)
-  NprintMeasures(measures, "Ensemble model results")
-  ##Load the ensemble model trained on all data
-  ensembleModel <- loadModelFromFile("EnsembleModel")
-  
-  numChurned <- nrow(fullDataset[which(fullDataset$Churn=="Yes"),])
-  churnRate <-  numChurned/nrow(fullDataset)
-  print(measures$TP)
-  print(measures$FP)
-  print(measures$TN)
-  print(measures$FN)
-  
-  print("end")
   
 } #endof main()
 
@@ -89,9 +76,6 @@ main<-function(){
 library(pacman)
 pacman::p_load(char=MYLIBRARIES,install=TRUE,character.only=TRUE)
 
-#This [optionally] sets working directory
-#setwd("")
-
 #Load additional R script files 
 source("functions/mars/data_pre_processing_pipeline.R")
 source("functions/mars/data_pre_processing_functions.R")
@@ -99,18 +83,17 @@ source("functions/nick/4labfunctions.R")
 source("functions/nick/lab4DataPrepNew.R")
 source("functions/nick/lab3DataPrep.R")
 source("functions/mars/utility_functions.R")
-source("Visualisation_UPDATED.R")
 source("functions/mars/logistic_regression_functions.R")
 source("functions/mars/random_forest_functions.R")
 source("functions/mars/neural_network_functions.R")
 source("functions/mars/ensemble.R")
-source("functions/mars/clustering_functions.R")
+source("functions/mars/roi_functions.R")
 
 set.seed(123)
 # clears the console area
 cat("\014")
 
-print("MARS: PBA Project overview file")
+print("MARS: PBA Project business insight file")
 
 # ************************************************
 main()

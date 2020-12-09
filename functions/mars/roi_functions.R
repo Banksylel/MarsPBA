@@ -16,23 +16,6 @@
 # ************************************************
 
 
-
-#This code is hideous. 
-#I promise I will clean it.
-
-
-MYLIBRARIES<-c("outliers",
-               "corrplot",
-               "MASS",
-               "formattable",
-               "stats",
-               "caret",
-               "stringr",
-               "PerformanceAnalytics",
-               "ggplot2",
-               "reshape")
-
-
 calculateAverageCustomerLifetime <- function(){
   rawDataset <- NreadDataset(DATASET_FILENAME)
   
@@ -222,26 +205,5 @@ dollarValueToFormattedString <- function(value){
   value <- paste("$", value, sep="")
   return(value)
 }
-
-
-
-# Loads the libraries
-library(pacman)
-pacman::p_load(char=MYLIBRARIES,install=TRUE,character.only=TRUE)
-# ************************************************
-# This is where R starts execution
-
-
-#Load additional R script files 
-source("functions/mars/data_pre_processing_pipeline.R")
-source("functions/mars/data_pre_processing_functions.R")
-source("functions/nick/4labfunctions.R")
-source("functions/nick/lab4DataPrepNew.R")
-source("functions/nick/lab3DataPrep.R")
-source("functions/mars/utility_functions.R")
-source("functions/mars/ensemble.R")
-
-
-calculateModelROI(750,0.1,25)
 
 
