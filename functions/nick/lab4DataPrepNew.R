@@ -117,7 +117,7 @@ NreadDataset<-function(csvFilename){
   # As they do not like spaces, punctuation, etc.
   names(dataset)<-NPREPROCESSING_removePunctuation(names(dataset))
 
-  print(paste("CSV dataset",csvFilename,"has been read. Records=",nrow(dataset)))
+  #print(paste("CSV dataset",csvFilename,"has been read. Records=",nrow(dataset)))
   return(dataset)
 }
 
@@ -182,7 +182,7 @@ NPREPROCESSING_initialFieldType<-function(dataset){
 # Uses histogram
 # Plots histogram for visulisation
 # ************************************************
-NPREPROCESSING_discreetNumeric<-function(dataset,field_types,cutoff){
+NPREPROCESSING_discreetNumeric<-function(dataset,field_types,cutoff, printflag=FALSE){
 
   #For every field in our dataset
   for(field in 1:(ncol(dataset))){
@@ -218,11 +218,14 @@ NPREPROCESSING_discreetNumeric<-function(dataset,field_types,cutoff){
         field_types[field]<-TYPE_DISCREET
       else
         field_types[field]<-TYPE_ORDINAL
+      
+      if(printflag){
+        #Bar chart helps visulisation. Type of field is the chart name
+        barplot(bins, main=paste(graphTitle,field_types[field]),
+                xlab=names(dataset[field]),
+                names.arg = 1:10,bty="n")
+      }
 
-      #Bar chart helps visulisation. Type of field is the chart name
-      barplot(bins, main=paste(graphTitle,field_types[field]),
-              xlab=names(dataset[field]),
-              names.arg = 1:10,bty="n")
 
     } #endif numeric types
   } #endof for
@@ -248,6 +251,7 @@ NPREPROCESSING_categorical<-function(dataset,field_types){
   #This is a dataframe of the transformed categorical fields
   catagorical<-data.frame(first=rep(NA,nrow(dataset)),stringsAsFactors=FALSE)
 
+  
   #For every field in our dataset
   for(field in 1:(ncol(dataset))){
 
@@ -317,16 +321,19 @@ NPREPROCESSING_categorical<-function(dataset,field_types){
 #
 # OUTPUT : None
 # ************************************************
-NplotOutliers<-function(sorted,outliers,fieldName){
+NplotOutliers<-function(sorted,outliers,fieldName, printflag=FALSE){
+  if(printflag){
+    plot(1:length(sorted),sorted,
+         pch=1,
+         xlab="Unique records",
+         ylab=paste("Sorted values",fieldName),
+         bty="n")
+    if (length(outliers)>0)
+      points(outliers,sorted[outliers],col="red",pch=19)
+    
+  }
 
-  plot(1:length(sorted),sorted,
-       pch=1,
-       xlab="Unique records",
-       ylab=paste("Sorted values",fieldName),
-       bty="n")
-
-  if (length(outliers)>0)
-    points(outliers,sorted[outliers],col="red",pch=19)
+  
 }
 
 # ************************************************

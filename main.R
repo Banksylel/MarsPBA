@@ -38,28 +38,21 @@ MYLIBRARIES<-c("outliers",
                "stringr",
                "PerformanceAnalytics",
                "ggplot2",
-               "reshape")
+               "reshape",
+               "dplyr",
+               "tidyverse",
+               "car",
+               "e1071",
+               "cowplot",
+               "caTools",
+               "pROC",
+               "ggcorrplot")
 
 
-#fix this
-#install.packages("tidyverse")
-library(ggplot2)
-#install.packages("dplyr")
-library(dplyr)
-library(tidyverse) 
-library(MASS)
-library(car)
-library(e1071)
-library(caret)
-library(cowplot)
-library(caTools)
-library(pROC)
-library(ggcorrplot)
-#aaa
-
-DATASET_FILENAME  <- "telco-data.csv"          # Name of input dataset file
 
 COLOUR_PALLETE <- c("#8accff", "#ff8792", "#adffbf", "#ffff9e", "#ffcf99","#ff7de5") # Colour pallete to use for graphing
+
+TEST_PERCENTAGE <- 0.1
 
 KFOLDS           <- 5 # Number of folds to use in k-Fold validation
 
@@ -81,9 +74,11 @@ main<-function(){
   ##Run preprocessing
   print("Preprocess the dataset")
   fullDataset <-  mars_GetPreprocessedDataset(scaleflag=TRUE, printflag=TRUE)
+  unscaledDataset <-  mars_GetPreprocessedDataset(scaleflag=FALSE, printflag=TRUE)
+  
 
   ##Split dataset into train/validation set and test set
-  trainSamples <- round(nrow(fullDataset)*0.9)
+  trainSamples <- round(nrow(fullDataset)*TEST_PERCENTAGE)
   train <- fullDataset[1:trainSamples,]
 
   testSamples <- nrow(fullDataset)-trainSamples
@@ -92,74 +87,75 @@ main<-function(){
   
   ##Create df for full results table
   fullResults <- data.frame()
-
-  #Run logistic regression evaluation
-  print("Print logistic regression measures")
-  lrResults <-  evaluateLogisticRegressionModel(train)
-  NprintMeasures(lrResults, "Logistic Regression model results")
-  fullResults <-rbind(fullResults, data.frame(lrResults))
-  fullResults <- t(fullResults)
-  
-  
-  #Train a logistic regression model on the full train set and output final test measures
-  lrModel <- createLogisticRegressionModel(train)
-  lrPredictions <- lrPredict(lrModel,test)
-  lrTestResults<-NdetermineThreshold(lrPredictions,test_expected,plot=FALSE)
-  NprintMeasures(lrTestResults, "Logistic Regression model final test evaluation")
-  fullResults <-rbind(fullResults, lrTestResults = data.frame(lrTestResults))
-  saveModelToFile("LogisticRegressionModel", lrModel)
-
-
-   ##Run random forest evaluation
-  print("Print random forest measures")
-  rfResults <-  evaluateRandomForestModel(train)
-  NprintMeasures(rfResults, "Random Forest model results")
-  fullResults <-rbind(fullResults, rfResults = t(data.frame(rfResults)))
-
-  #Train a random forest model on the full train set and output final test measures
-  rfModel <- createRandomForestModel(train)
-  rfPredictions <- rfPredict(rfModel,test)
-  rfTestResults<-NdetermineThreshold(rfPredictions,test_expected,plot=FALSE)
-  NprintMeasures(rfTestResults, "Random forest model final test evaluation")
-  fullResults <-rbind(fullResults, rfTestResults = data.frame(rfTestResults))
-  saveModelToFile("RandomForestModel",rfModel)
-
-  #Run neural network evaluation
-  print("Print neural network measures")
-  nnResults <-  evaluateNeuralNetworkModel(train)
-  NprintMeasures(nnResults, "Neural Network model results")
-  fullResults <-rbind(fullResults, nnResults = t(data.frame(nnResults)))
-
-  #Train a neural network model on the full train set and output final test measures
-  nnModel <- createNeuralNetworkModel(train)
-  nnPredictions <- nnPredict(nnModel,test)
-  nnTestResults<-NdetermineThreshold(nnPredictions,test_expected,plot=FALSE)
-  NprintMeasures(nnTestResults, "Neural network model final test evaluation")
-  fullResults <-rbind(fullResults, nnTestResults = data.frame(nnTestResults))
-  saveModelToFile("NeuralNetworkModel",nnModel)
-
-  # ##Run ensemble model evaluation
-  print("Print ensemble measures")
-  ensembleResults <-  evaluateEnsembleModel(train)
-  NprintMeasures(ensembleResults, "Ensemble model results")
-  fullResults <-rbind(fullResults, ensembleResults = t(data.frame(ensembleResults)))
-  
-  # ##Train an ensemble model on the full train set and output final test measures
-  ensembleModel <- createEnsembleModel(train)
-  ensemblePredictions <- ensemblePredictVote(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel,test)
-  ensembleTestResults<-NdetermineThreshold(ensemblePredictions,test_expected,plot=FALSE)
-  NprintMeasures(ensembleTestResults, "Ensemble model final test evaluations")
-  fullResults <-rbind(fullResults, ensembleTestResults = data.frame(ensembleTestResults))
-  saveModelToFile( "EnsembleModel", ensembleModel)
-
-  #Print summary results
-  print(formattable::formattable(fullResults))
+  # 
+  # #Run logistic regression evaluation
+  # print("Print logistic regression measures")
+  # lrResults <-  evaluateLogisticRegressionModel(train)
+  # NprintMeasures(lrResults, "Logistic Regression model results")
+  # fullResults <-rbind(fullResults, data.frame(lrResults))
+  # fullResults <- t(fullResults)
+  # 
+  # 
+  # #Train a logistic regression model on the full train set and output final test measures
+  # lrModel <- createLogisticRegressionModel(train)
+  # lrPredictions <- lrPredict(lrModel,test)
+  # lrTestResults<-NdetermineThreshold(lrPredictions,test_expected,plot=FALSE)
+  # NprintMeasures(lrTestResults, "Logistic Regression model final test evaluation")
+  # fullResults <-rbind(fullResults, lrTestResults = data.frame(lrTestResults))
+  # saveModelToFile("LogisticRegressionModel", lrModel)
+  # 
+  # 
+  #  ##Run random forest evaluation
+  # print("Print random forest measures")
+  # rfResults <-  evaluateRandomForestModel(train)
+  # NprintMeasures(rfResults, "Random Forest model results")
+  # fullResults <-rbind(fullResults, rfResults = t(data.frame(rfResults)))
+  # 
+  # #Train a random forest model on the full train set and output final test measures
+  # rfModel <- createRandomForestModel(train)
+  # rfPredictions <- rfPredict(rfModel,test)
+  # rfTestResults<-NdetermineThreshold(rfPredictions,test_expected,plot=FALSE)
+  # NprintMeasures(rfTestResults, "Random forest model final test evaluation")
+  # fullResults <-rbind(fullResults, rfTestResults = data.frame(rfTestResults))
+  # saveModelToFile("RandomForestModel",rfModel)
+  # 
+  # #Run neural network evaluation
+  # print("Print neural network measures")
+  # nnResults <-  evaluateNeuralNetworkModel(train)
+  # NprintMeasures(nnResults, "Neural Network model results")
+  # fullResults <-rbind(fullResults, nnResults = t(data.frame(nnResults)))
+  # 
+  # #Train a neural network model on the full train set and output final test measures
+  # nnModel <- createNeuralNetworkModel(train)
+  # nnPredictions <- nnPredict(nnModel,test)
+  # nnTestResults<-NdetermineThreshold(nnPredictions,test_expected,plot=FALSE)
+  # NprintMeasures(nnTestResults, "Neural network model final test evaluation")
+  # fullResults <-rbind(fullResults, nnTestResults = data.frame(nnTestResults))
+  # saveModelToFile("NeuralNetworkModel",nnModel)
+  # 
+  # # ##Run ensemble model evaluation
+  # print("Print ensemble measures")
+  # ensembleResults <-  evaluateEnsembleModel(train)
+  # NprintMeasures(ensembleResults, "Ensemble model results")
+  # fullResults <-rbind(fullResults, ensembleResults = t(data.frame(ensembleResults)))
+  # 
+  # # ##Train an ensemble model on the full train set and output final test measures
+  # ensembleModel <- createEnsembleModel(train)
+  # ensemblePredictions <- ensemblePredictVote(ensembleModel,test)
+  # ensembleTestResults<-NdetermineThreshold(ensemblePredictions,test_expected,plot=FALSE)
+  # NprintMeasures(ensembleTestResults, "Ensemble model final test evaluations")
+  # fullResults <-rbind(fullResults, ensembleTestResults = data.frame(ensembleTestResults))
+  # saveModelToFile( "EnsembleModel", ensembleModel)
+  # 
+  # #Print summary results
+  # print(formattable::formattable(fullResults))
 
 
   ##Run clustering evaluation
   kMeansModel <-createKmeansModel(fullDataset)
-
-
+  #Visualise with unscaled data so that we can plot real values
+  visualiseKmeansModel(kMeansModel,unscaledDataset)
+  
   print("end of main")
   
 } #endof main()

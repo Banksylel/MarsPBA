@@ -15,30 +15,6 @@
 #   1.02      16/11/2020    Chris Jennings    Fixed bugs
 # ************************************************
 
-
-# Define and then load the libraries used in this project
-# Library from CRAN     Version
-# pacman	               0.5.1
-# outliers	             0.14
-# corrplot	             0.84
-# MASS	                 7.3.53
-# formattable 	         0.2.0.1
-# stats                  4.0.3
-# PerformanceAnalytics   2.0.4
-
-
-#  clears all objects in "global environment"
-#rm(list=ls())
-
-MYLIBRARIES<-c("outliers",
-               "corrplot",
-               "MASS",
-               "formattable",
-               "stats",
-               "caret",
-               "stringr",
-               "PerformanceAnalytics")
-
 # ************************************************
 # Name      :   getLRClassifications() :
 # Purpose   :   Determine "measures" when using optimal threshold
@@ -120,7 +96,6 @@ logisticRegression <- function(training_data,testing_data, formular=formular, pl
 # OUTPUT    :   Model formula with reduced feature set.
 #
 # ************************************************
-
 reduceFeatures<-function(dataset) {
   
   # Determine importance of features
@@ -152,7 +127,6 @@ reduceFeatures<-function(dataset) {
 # OUTPUT    :   None
 #
 # ************************************************
-
 retention<-function(trainedModel, threshold, dataset, title){
 
   positionClassOutput=which(names(dataset)==OUTPUT_FIELD)
@@ -191,6 +165,28 @@ retention<-function(trainedModel, threshold, dataset, title){
        xlab = "Discount %", 
        ylab = "Churn rate %")
 
+}
+
+# ************************************************
+# Name      :   lrPredict() :
+# Purpose   :   Calculates class predictions using a logistic regression model
+#
+# INPUT     :   object           - lrModel              - the trained logistic regression model
+#           :   data frame       - test                 - the dataset to predict
+#
+# OUTPUT    :   vector double    - test_predictedProbs  - the class predictions for the input dataset
+#
+# ************************************************
+lrPredict <- function(model, test){
+  positionClassOutput=which(names(test)==OUTPUT_FIELD)
+  
+  #test data: dataframe with with just input fields
+  test_inputs<-test[-positionClassOutput]
+  
+  # Get probabilities of being class 1 from the classifier
+  test_predictedProbs<-predict(model,test_inputs, type="response")
+  
+  return(test_predictedProbs)
 }
 
 # ************************************************

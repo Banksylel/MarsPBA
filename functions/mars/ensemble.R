@@ -30,7 +30,7 @@ ensemble <- function(train,test,...){
   
   #Can optionally switch to mean based predictions
   #ensemblePredictions <-  ensemblePredictMean(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel, test)
-  ensemblePredictions <-  ensemblePredictVote(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel, test)
+  ensemblePredictions <-  ensemblePredictVote(ensembleModel, test)
   
   test_expected <- test[,OUTPUT_FIELD]
   results<-NdetermineThreshold(ensemblePredictions, test_expected, plot=FALSE, title="Ensemble results")
@@ -65,8 +65,8 @@ ensembleROI <- function(train,test,threshold, monthlyCharges, acquisitionCost, e
   ensembleModel <- createEnsembleModel(train)
   
   #Optionally use mean predictions
-  #ensemblePredictions <-  ensemblePredictMean(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel, test)
-  ensemblePredictions <-  ensemblePredictVote(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel, test)
+  #ensemblePredictions <-  ensemblePredictMean(ensembleModel, test)
+  ensemblePredictions <-  ensemblePredictVote(ensembleModel, test)
   
   test_expected <- test[,OUTPUT_FIELD]
   threshold <- NcalculateThreshold(ensemblePredictions, test_expected)
@@ -108,26 +108,24 @@ createEnsembleModel <- function(train){
 # Name      :   ensemblePredictVote() :
 # Purpose   :   Calculates class predictions using for the custom 'EnsembleModel' class using the 'Vote' method
 #
-# INPUT     :   object           - lrModel              - the ensemble model's logistic regression classifier
-#           :   object           - rfModel              - the ensemble model's random forest classifier
-#           :   object           - nnModel              - the ensemble model's neural network classifier
+# INPUT     :   object           - ensembleModel        - the ensemble model
 #           :   data frame       - test                 - the dataset to predict
 #
 # OUTPUT    :   vector double    - ensemblePredictions  - the class predictions for the input dataset
 #
 # ************************************************
-ensemblePredictVote <- function(lrModel, rfModel, nnModel, test){
+ensemblePredictVote <- function(ensembleModel, test){
   test_expected <- test[,OUTPUT_FIELD]
   
-  logrPredictions <- lrPredict(lrModel, test)
+  logrPredictions <- lrPredict(ensembleModel$lrModel, test)
   logrThreshold <- NdetermineThreshold(logrPredictions, test_expected)$threshold
   logrVotes<-ifelse(logrPredictions<logrThreshold,0,1)
   
-  rfPredictions <- rfPredict(rfModel, test)
+  rfPredictions <- rfPredict(ensembleModel$rfModel, test)
   rfThreshold <- NdetermineThreshold(rfPredictions, test_expected)$threshold
   rfVotes<-ifelse(rfPredictions<rfThreshold,0,1)
   
-  nnPredictions <-  nnPredict(nnModel,test)
+  nnPredictions <-  nnPredict(ensembleModel$nnModel,test)
   nnThreshold <- NdetermineThreshold(nnPredictions, test_expected)$threshold
   nnVotes <-ifelse(nnPredictions<nnThreshold,0,1)
   
@@ -150,20 +148,18 @@ ensemblePredictVote <- function(lrModel, rfModel, nnModel, test){
 # Name      :   ensemblePredictMean() :
 # Purpose   :   Calculates class predictions using for the custom 'EnsembleModel' class using the 'Mean average' method
 #
-# INPUT     :   object           - lrModel              - the ensemble model's logistic regression classifier
-#           :   object           - rfModel              - the ensemble model's random forest classifier
-#           :   object           - nnModel              - the ensemble model's neural network classifier
+# INPUT     :   object           - ensembleModel        - the ensemble model
 #           :   data frame       - test                 - the dataset to predict
 #
 # OUTPUT    :   vector double    - ensemblePredictions  - the class predictions for the input dataset
 #
 # ************************************************
-ensemblePredictMean <- function(lrModel, rfModel, nnModel, test){
+ensemblePredictMean <- function(ensembleModel, test){
   test_expected <- test[,OUTPUT_FIELD]
 
-  logrPredictions <- lrPredict(lrModel, test)
-  rfPredictions <- rfPredict(rfModel, test)
-  nnPredictions <-  nnPredict(nnModel,test)
+  logrPredictions <- lrPredict(ensembleModel$lrModel, test)
+  rfPredictions <- rfPredict(ensembleModel$rfModel, test)
+  nnPredictions <-  nnPredict(ensembleModel$nnModel,test)
 
   
   ensemblePredictions <- vector()
@@ -178,78 +174,8 @@ ensemblePredictMean <- function(lrModel, rfModel, nnModel, test){
   return(ensemblePredictions)
 }
 
-# ************************************************
-# Name      :   nnPredict() :
-# Purpose   :   Calculates class predictions using a trained neural network model
-#
-# INPUT     :   object           - nnModel              - the trained neural network
-#           :   data frame       - test                 - the dataset to predict
-#
-# OUTPUT    :   vector double    - test_predicted       - the class predictions for the input dataset
-#
-# ************************************************
-nnPredict <- function(model, test){
-  test_expected<-test[,OUTPUT_FIELD]
-  test_h2o <- as.h2o(test, destination_frame = "testdata")
 
-  pred <- h2o::h2o.predict(model, test_h2o)
 
-  test_predicted<-as.vector(pred$p1)  #Returns the probabilities of class 1
-  return(test_predicted)
-}
-
-# ************************************************
-# Name      :   rfPredict() :
-# Purpose   :   Calculates class predictions using a trained random forest model
-#
-# INPUT     :   object           - rfModel              - the trained random forest model
-#           :   data frame       - test                 - the dataset to predict
-#
-# OUTPUT    :   vector double    - test_predictedProbs  - the class predictions for the input dataset
-#
-# ************************************************
-rfPredict <- function(model, test){
-  positionClassOutput=which(names(test)==OUTPUT_FIELD)
-  
-  #test data: dataframe with with just input fields
-  test_inputs<-test[-positionClassOutput]
-  
-  # Generate class membership probabilities
-  # Column 1 is for class 0 (bad loan) and column 2 is for class 1 (good loan)
-  
-  testPredictedClassProbs<-predict(model,test_inputs, type="prob")
-  
-  # Get the column index with the class label
-  classIndex<-which(as.numeric(colnames(testPredictedClassProbs))==1)
-  
-  # Get the probabilities for classifying the good loans
-  test_predictedProbs<-testPredictedClassProbs[,classIndex]
-  
-  return(test_predictedProbs)
-  
-}
-
-# ************************************************
-# Name      :   lrPredict() :
-# Purpose   :   Calculates class predictions using a logistic regression model
-#
-# INPUT     :   object           - lrModel              - the trained logistic regression model
-#           :   data frame       - test                 - the dataset to predict
-#
-# OUTPUT    :   vector double    - test_predictedProbs  - the class predictions for the input dataset
-#
-# ************************************************
-lrPredict <- function(model, test){
-  positionClassOutput=which(names(test)==OUTPUT_FIELD)
-  
-  #test data: dataframe with with just input fields
-  test_inputs<-test[-positionClassOutput]
-  
-  # Get probabilities of being class 1 from the classifier
-  test_predictedProbs<-predict(model,test_inputs, type="response")
-  
-  return(test_predictedProbs)
-}
 
 # ************************************************
 # Name      :   evaluateEnsembleModel() :

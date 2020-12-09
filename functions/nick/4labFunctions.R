@@ -145,7 +145,7 @@ NdetermineThreshold<-function(test_predicted,
 
 NcalculateThreshold<-function(test_predicted,
                               test_expected,
-                              plot=TRUE,
+                              plot=FALSE,
                               title=""){
   toPlot<-data.frame()
   

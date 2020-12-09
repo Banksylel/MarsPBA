@@ -266,6 +266,37 @@ createRandomForestModel <- function(dataset,print=FALSE){
 
 
 # ************************************************
+# Name      :   rfPredict() :
+# Purpose   :   Calculates class predictions using a trained random forest model
+#
+# INPUT     :   object           - rfModel              - the trained random forest model
+#           :   data frame       - test                 - the dataset to predict
+#
+# OUTPUT    :   vector double    - test_predictedProbs  - the class predictions for the input dataset
+#
+# ************************************************
+rfPredict <- function(model, test){
+  positionClassOutput=which(names(test)==OUTPUT_FIELD)
+  
+  #test data: dataframe with with just input fields
+  test_inputs<-test[-positionClassOutput]
+  
+  # Generate class membership probabilities
+  # Column 1 is for class 0 (bad loan) and column 2 is for class 1 (good loan)
+  
+  testPredictedClassProbs<-predict(model,test_inputs, type="prob")
+  
+  # Get the column index with the class label
+  classIndex<-which(as.numeric(colnames(testPredictedClassProbs))==1)
+  
+  # Get the probabilities for classifying the good loans
+  test_predictedProbs<-testPredictedClassProbs[,classIndex]
+  
+  return(test_predictedProbs)
+  
+}
+
+# ************************************************
 # main() :
 # main entry point to execute analytics
 #

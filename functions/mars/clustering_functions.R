@@ -128,9 +128,6 @@ visualiseClusters <- function(dataset, kmeansModel){
     
     
   }
-  #Plot a summary of the cluster aggregates
-  print(formattable::formattable(results))
-  
   #Plot a graph of monthly charges against tenure coloured by cluster
   p<-ggplot(dataset, aes(x=tenure, y = MonthlyCharges)) + geom_point(color = COLOUR_PALLETE[kmeansModel$cluster])
   print(p)
@@ -289,19 +286,21 @@ createKmeansModel<-function(dataset){
   predictors<-dataset[,-positionOutput]
   
   modelKmeans <- kmeans(x=predictors, centers=5, nstart=25)
-  
-  
-  #Retrieve the original dataset to get the original fields
-  originalDataset <- NreadDataset(DATASET_FILENAME)
-  rows <- as.integer(row.names(dataset))
-  originalValueDataset <- dataset
-  originalValueDataset[,c('tenure', 'MonthlyCharges', 'TotalCharges')] <- originalDataset[rows,c('tenure', 'MonthlyCharges', 'TotalCharges')]
 
-  #Visualise the resulting clusters
-  visualiseClusters(originalValueDataset,modelKmeans)
   
   return(modelKmeans)
 } 
+
+visualiseKmeansModel <- function(kmeansModel, unscaledDataset){
+  #Retrieve the original dataset to get the original fields
+  originalDataset <- NreadDataset(DATASET_FILENAME)
+  rows <- as.integer(row.names(unscaledDataset))
+  originalValueDataset <- unscaledDataset
+  originalValueDataset[,c('tenure', 'MonthlyCharges', 'TotalCharges')] <- originalDataset[rows,c('tenure', 'MonthlyCharges', 'TotalCharges')]
+  
+  #Visualise the resulting clusters
+  visualiseClusters(originalValueDataset,kmeansModel)
+}
 
 
 

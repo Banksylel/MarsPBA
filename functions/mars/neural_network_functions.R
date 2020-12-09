@@ -84,6 +84,25 @@ findOptimalNetworkParameter <- function(dataset, testName, testSet, kfolds){
   
 }
 
+# ************************************************
+# Name      :   nnPredict() :
+# Purpose   :   Calculates class predictions using a trained neural network model
+#
+# INPUT     :   object           - nnModel              - the trained neural network
+#           :   data frame       - test                 - the dataset to predict
+#
+# OUTPUT    :   vector double    - test_predicted       - the class predictions for the input dataset
+#
+# ************************************************
+nnPredict <- function(model, test){
+  test_expected<-test[,OUTPUT_FIELD]
+  test_h2o <- as.h2o(test, destination_frame = "testdata")
+  
+  pred <- h2o::h2o.predict(model, test_h2o)
+  
+  test_predicted<-as.vector(pred$p1)  #Returns the probabilities of class 1
+  return(test_predicted)
+}
 
 # ************************************************
 # Name      :   findAllOptimalNetworkParameters() :
