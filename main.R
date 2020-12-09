@@ -41,6 +41,22 @@ MYLIBRARIES<-c("outliers",
                "reshape")
 
 
+#fix this
+#install.packages("tidyverse")
+library(ggplot2)
+#install.packages("dplyr")
+library(dplyr)
+library(tidyverse) 
+library(MASS)
+library(car)
+library(e1071)
+library(caret)
+library(cowplot)
+library(caTools)
+library(pROC)
+library(ggcorrplot)
+
+
 DATASET_FILENAME  <- "telco-data.csv"          # Name of input dataset file
 
 COLOUR_PALLETE <- c("#8accff", "#ff8792", "#adffbf", "#ffff9e", "#ffcf99","#ff7de5") # Colour pallete to use for graphing
