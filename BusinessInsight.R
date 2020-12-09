@@ -42,12 +42,19 @@ MYLIBRARIES<-c("outliers",
 
 DATASET_FILENAME  <- "telco-data.csv"          # Name of input dataset file
 
+KFOLDS           <- 5 # Number of folds to use in k-Fold validation
+
+CUSTOMER_TENURE_FIELD <- 'tenure'
+MONTHLY_CHARGE_FIELD <- 'MonthlyCharges'
+
+
 #In dollars
 COST_TO_RETAIN <- 750
 
 ENTICEMENT_PERCENTAGE <- 0.1
 
-MINIMUN_ENTICEMENT_THRESHOLD <-  25
+MINIMUM_ENTICEMENT_THRESHOLD <-  25
+
 # ************************************************
 # Name      :   main() :
 # Purpose   :   Main entry point for business insight
@@ -57,10 +64,13 @@ MINIMUN_ENTICEMENT_THRESHOLD <-  25
 # OUTPUT    :   None
 #
 # ************************************************
-
 main<-function(){
+  #We need a scaled dataset for training and an unscaled dataset for cost calculations
+  scaledDataset <-  mars_GetPreprocessedDataset(scaleflag=TRUE, printflag=FALSE)
+  unscaledDataset <-  mars_GetPreprocessedDataset(scaleflag=FALSE, printflag=FALSE)
   
-  calculateModelROI(COST_TO_RETAIN,ENTICEMENT_PERCENTAGE,MINIMUN_ENTICEMENT_THRESHOLD)
+  #Evalutate the ensemble model
+  evaluateEnsembleModelROI(scaledDataset, unscaledDataset, COST_TO_RETAIN,ENTICEMENT_PERCENTAGE,MINIMUM_ENTICEMENT_THRESHOLD)
   
   
 } #endof main()

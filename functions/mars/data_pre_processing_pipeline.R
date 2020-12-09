@@ -19,9 +19,6 @@
 
 DATASET_FILENAME  <- "telco-data.csv"     # Name of input dataset file
 OUTPUT_FIELD      <- "Churn"              # Field name of the output class to predict
-CUSTOMER_LIFETIME_FIELD  <- "tenure"              # Field name of the output class to predict
-MONTHLY_CHARGES_FIELD  <- "monthly_charges"              # Field name of the output class to predict
-
 
 SCALE_DATASET     <- TRUE                 # Set to true to scale dataset before ML stage
 OUTLIER_CONF      <- 0.9                  # Confidence p-value for outlier detection
@@ -35,8 +32,6 @@ TYPE_IGNORE       <- "IGNORE"             # field is not encoded
 
 DISCREET_BINS     <- 5                    # Number of empty bins to determine discreet
 MAX_LITERALS      <- 55                   # Maximum number of hotcoding new fields
-
-KFOLDS           <- 5
 
 # Define and then load the libraries used in this project
 # Library from CRAN     Version
@@ -80,11 +75,16 @@ mars_GetPreprocessedDataset<-function(scaleflag = TRUE, printflag = FALSE, balan
   # Read data from file
   dataset<-NreadDataset(DATASET_FILENAME)
   
+  if( !(OUTPUT_FIELD %in% colnames(dataset)))
+  {
+    stop("The loaded dataset does not contain the specified output field, have you set this correctly?");
+  }
+  
   print(getMode(dataset$tenure))
   
   if(balanceflag){
     #*************************************************
-    #Return all rows that have churned. There are 1869 rows
+    #Return all rows that have churned. 
     y <-dataset[dataset$Churn == "Yes", ]
     #Return rows that not churned.
     n <- dataset[dataset$Churn == "No", ]
@@ -97,10 +97,6 @@ mars_GetPreprocessedDataset<-function(scaleflag = TRUE, printflag = FALSE, balan
     dataset <- yandn[sample(1:nrow(yandn)), ]
   }
 
-  
-  p<-ggplot(dataset, aes(x=tenure, y = TotalCharges)) + geom_point()
-  print(p)
-  
   
   # ************************************************
   # Remove customerID field because it is irrelevant
