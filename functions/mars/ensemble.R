@@ -87,15 +87,19 @@ ensembleROI <- function(train,test,threshold, monthlyCharges, acquisitionCost, e
 # ************************************************
 createEnsembleModel <- function(train){
   
+  #Train a logistic regression model
   logisticRegressionModel <-  createLogisticRegressionModel(train)
   print("Logistic Regression model trained")
 
+  #Train a random forest model
   randomForestModel <-  createRandomForestModel(train)
   print("Random Forest model trained")
   
+  #Train a neural network model
   neuralNetworkModel <-  createNeuralNetworkModel(train)
   print("Neural Network model trained")
   
+  #Create the ensemble 'model'. R is quite restrictive in creating classes, so our model here effectively is just a list of the base models.
   ensembleModel <-  list("lrModel" = logisticRegressionModel, "rfModel" = randomForestModel, "nnModel" = neuralNetworkModel)
   
   return(ensembleModel)
@@ -115,20 +119,25 @@ createEnsembleModel <- function(train){
 #
 # ************************************************
 ensemblePredictVote <- function(ensembleModel, test){
+  #Define the targets
   test_expected <- test[,OUTPUT_FIELD]
   
+  #Get the logistic regression prediction and threshold it into a 1 or 0 binary vote
   logrPredictions <- lrPredict(ensembleModel$lrModel, test)
   logrThreshold <- NdetermineThreshold(logrPredictions, test_expected)$threshold
   logrVotes<-ifelse(logrPredictions<logrThreshold,0,1)
   
+  #Get the random forest prediction and threshold it into a 1 or 0 binary vote
   rfPredictions <- rfPredict(ensembleModel$rfModel, test)
   rfThreshold <- NdetermineThreshold(rfPredictions, test_expected)$threshold
   rfVotes<-ifelse(rfPredictions<rfThreshold,0,1)
   
+  #Get the neural network prediction and threshold it into a 1 or 0 binary vote
   nnPredictions <-  nnPredict(ensembleModel$nnModel,test)
   nnThreshold <- NdetermineThreshold(nnPredictions, test_expected)$threshold
   nnVotes <-ifelse(nnPredictions<nnThreshold,0,1)
   
+  #Initialise the vector for storing our predictions
   ensemblePredictions <- vector()
   
   for(i in 1:nrow(test)){
@@ -155,21 +164,23 @@ ensemblePredictVote <- function(ensembleModel, test){
 #
 # ************************************************
 ensemblePredictMean <- function(ensembleModel, test){
+  #Define the targets
   test_expected <- test[,OUTPUT_FIELD]
 
+  #Get the raw predictions for each model
   logrPredictions <- lrPredict(ensembleModel$lrModel, test)
   rfPredictions <- rfPredict(ensembleModel$rfModel, test)
   nnPredictions <-  nnPredict(ensembleModel$nnModel,test)
 
-  
+  #Initialise the vector for storing our predictions
   ensemblePredictions <- vector()
   
+  #Average the mean prediction as each ensemble prediction
   for(i in 1:nrow(test)){
     meanPrediction <-  (logrPredictions[i]+rfPredictions[i]+nnPredictions[i])/3
     ensemblePredictions <-  append(ensemblePredictions,meanPrediction)
     
   }
-  
 
   return(ensemblePredictions)
 }
@@ -187,7 +198,7 @@ ensemblePredictMean <- function(ensembleModel, test){
 #
 # ************************************************
 evaluateEnsembleModel <- function(dataset){
-
+  #Run k fold evaluation on the ensemble model
   results <-  kfold(dataset, 5, ensemble)
   
   return(results)

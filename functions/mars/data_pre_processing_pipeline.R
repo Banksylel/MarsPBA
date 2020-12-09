@@ -60,9 +60,11 @@ MYLIBRARIES<-c("outliers",
 # ************************************************
 # mars_GetPreprocessedDataset() :
 #
-# INPUT       :   printflag - optionally display results
+# INPUT       :   boolean       -    scaleflag            - scale the dataset?
+#             :   boolean       -    printflag            - print preprocessing steps?
+#             :   boolean       -    balance the flag     - balance the dataset?
 #
-# OUTPUT      :   Pre-processed dataset
+# OUTPUT      :   data frame    - combinedML              - Pre-processed dataset
 #
 # ************************************************
 mars_GetPreprocessedDataset<-function(scaleflag = TRUE, printflag = FALSE, balanceflag=TRUE){
@@ -80,8 +82,7 @@ mars_GetPreprocessedDataset<-function(scaleflag = TRUE, printflag = FALSE, balan
     stop("The loaded dataset does not contain the specified output field, have you set this correctly?");
   }
   
-  print(getMode(dataset$tenure))
-  
+
   if(balanceflag){
     #*************************************************
     #Return all rows that have churned. 
@@ -213,20 +214,13 @@ mars_GetPreprocessedDataset<-function(scaleflag = TRUE, printflag = FALSE, balan
   
   # The dataset for ML information
   print(paste("Fields=",ncol(combinedML)))
-  print("End")
-  
-  
-
   
 
   
   return(combinedML)
   
-} #endof main()
+} 
 
-getMode <- function(v) {
-  uniqv <- unique(v)
-  uniqv[which.max(tabulate(match(v, uniqv)))]
-}
+
 
 

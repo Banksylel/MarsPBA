@@ -236,7 +236,7 @@ plotClusterContractRates <- function(results){
 
 
 # ************************************************
-# Name      :   plotClusterSubscriptionRates()) :
+# Name      :   plotClusterSubscriptionRates() :
 # Purpose   :   Plot the service subscription rates in each cluster
 #
 # INPUT     :   data frame      - results                  - data frame containing each cluster and its aggregated fields
@@ -271,7 +271,7 @@ plotClusterServiceSubscriptionRates <- function(results){
 }
 
 # ************************************************
-# Name      :   createKmeansModel()) :
+# Name      :   createKmeansModel() :
 # Purpose   :   Create and train a k-Means model on a dataset
 #
 # INPUT     :   data frame      - dataset        - the dataset to cluster
@@ -285,12 +285,25 @@ createKmeansModel<-function(dataset){
   positionOutput<-which(names(dataset)==OUTPUT_FIELD)
   predictors<-dataset[,-positionOutput]
   
+  #Run the k-means model
   modelKmeans <- kmeans(x=predictors, centers=5, nstart=25)
 
   
   return(modelKmeans)
 } 
 
+
+
+# ************************************************
+# Name      :   visualiseKmeansModel() :
+# Purpose   :   visualise k means clustering done by a model
+#
+# INPUT     :   object          - kmeansModel            - the k-Means model
+#           :   data frame      - unscaledDataset        - the unscaled data with raw values
+#
+# OUTPUT    :   none
+#
+# ************************************************
 visualiseKmeansModel <- function(kmeansModel, unscaledDataset){
   #Retrieve the original dataset to get the original fields
   originalDataset <- NreadDataset(DATASET_FILENAME)

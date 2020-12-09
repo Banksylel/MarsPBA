@@ -26,7 +26,6 @@
 # ************************************************
 calculateAverageCustomerLifetime <- function(){
   rawDataset <- NreadDataset(DATASET_FILENAME)
-  
   avgTenure <-  mean(rawDataset[,CUSTOMER_TENURE_FIELD])
   
   return(avgTenure)
@@ -67,27 +66,29 @@ evaluateModel <- function(predicted, expected, threshold, monthlyCharges, acquis
   avgTenure <-  calculateAverageCustomerLifetime()
   predictions<-ifelse(predicted<threshold,0,1)
   
+  #Initialise results list
   results<-list(  "TP"=0,
                   "FN"=0,
                   "TN"=0,
                   "FP"=0
   )  
   
+  #Initialise metrics
   wronglyEnticedCost <- 0
   correctlyEnticedCost <- 0
   lostRevenueWithModel <- 0
   lostRevenueWithoutModel <- 0
   costToReplaceWithModel <- 0
   costToReplaceWithoutModel <- 0
-  
+
   for(i in 1:length(predictions)){
+    #Estimate customer value of record
     customerValue <-  estimateCustomerValue(monthlyCharges[i] ,avgTenure)
     
+    #If the model predicts churn
     if(predicted[i]==1){
+      #We spend a 10% enticement over their monthly charges for their customer lifetime
       customerEnticementSpend <- customerValue*enticementPercent
-      
-      
-
       
       #False Positive, wrongly enticed customers
       if(expected[i]==0){
@@ -99,13 +100,11 @@ evaluateModel <- function(predicted, expected, threshold, monthlyCharges, acquis
           
         }
         
-
-        
       #True Positive
       }else{
         results$TP <- results$TP + 1
         
-        #if we spend
+        #Only spend if they are above our threshold
         if(monthlyCharges[i]>minEnticementThreshold){
           correctlyEnticedCost <- correctlyEnticedCost+customerEnticementSpend
           
@@ -114,10 +113,9 @@ evaluateModel <- function(predicted, expected, threshold, monthlyCharges, acquis
           lostRevenueWithModel <- lostRevenueWithModel + customerValue
         }
         
-        
+        #Without a model all these customers will churn
         costToReplaceWithoutModel <- costToReplaceWithoutModel + acquisitionCost
         lostRevenueWithoutModel <- lostRevenueWithoutModel+customerValue
-        
         }
       
     }
@@ -129,16 +127,17 @@ evaluateModel <- function(predicted, expected, threshold, monthlyCharges, acquis
         
       #False Negative
       }else{
+        #We lose the customer value as lost revenue and have to replace them
         results$FN <- results$FN + 1
         costToReplaceWithModel <- costToReplaceWithModel + acquisitionCost
         costToReplaceWithoutModel <- costToReplaceWithoutModel + acquisitionCost
         lostRevenueWithoutModel <- lostRevenueWithoutModel+customerValue
-        
         lostRevenueWithModel <- lostRevenueWithModel+customerValue
       }
     }
   }
   
+  #Add metrics to results list
   results$mispentEnticements <- wronglyEnticedCost
   results$correctEnticements <- correctlyEnticedCost
   results$totalEnticementSpend <- wronglyEnticedCost + correctlyEnticedCost
@@ -149,9 +148,11 @@ evaluateModel <- function(predicted, expected, threshold, monthlyCharges, acquis
   results$totalSpendWithModel <- results$costToReplaceWithModel+results$totalEnticementSpend
   results$totalSpendWithoutModel <- results$costToReplaceWithoutModel
   
+  #Calculate ROI
   netReturn <- results$totalSpendWithoutModel-results$totalSpendWithModel
   roi <- round((netReturn/results$totalEnticementSpend)*100,2)
   results$ROI <- roi
+  
   return(results)
 }
 
@@ -181,25 +182,21 @@ evaluateEnsembleModelROI<-function(scaledDataset, unscaledDataset,acquisitionCos
   test_monthlyCharges <- unscaledTest[,MONTHLY_CHARGE_FIELD]
   
 
-  # ##Train an ensemble model on the full train set and output final test measures
+  #Train an ensemble model on the full train set and output final test measures
   ensembleModel <- createEnsembleModel(scaledTrain)
   ensemblePredictions <- ensemblePredictVote(ensembleModel,test)
-  ensembleTestResults<-NdetermineThreshold(ensemblePredictions,test_expected,plot=FALSE)
-  NprintMeasures(ensembleTestResults, "Ensemble model final test evaluation")
 
+  #Calculate the threshold for the ensemble model and evaluate for test data
   threshold <- NcalculateThreshold(ensemblePredictions, test_expected)
   results <- evaluateModel(ensemblePredictions, test_expected, threshold, test_monthlyCharges, acquisitionCost, enticementPercent,minEnticementThreshold)
-  print(results)
   NprintMeasures(results, "Ensemble model test results")
   plotResults(results, round=FALSE)
   
-  
+  #Evaluate ROI using kfold
   results <-  kfold(scaledTrain, 5, ensembleROI, monthlyCharges=unscaledTrain[,MONTHLY_CHARGE_FIELD], acquisitionCost=acquisitionCost, enticementPercent = enticementPercent,minEnticementThreshold=minEnticementThreshold)
   print(results)
   NprintMeasures(results, "Ensemble model validation results")
   plotResults(results, round=FALSE)
-  
-
   
   return(results)
   
@@ -219,6 +216,7 @@ evaluateEnsembleModelROI<-function(scaledDataset, unscaledDataset,acquisitionCos
 # ************************************************
 plotResults <- function(results, round=TRUE){
   
+  #Retrieve the metrics we need to plot, total enticement spend, cost to replace and totalspend
   totalEnticementSpend <-  as.vector(as.numeric(results["totalEnticementSpend"]))
   totalEnticementSpend <- append(totalEnticementSpend,0)
   
@@ -228,6 +226,7 @@ plotResults <- function(results, round=TRUE){
   totalSpend <- as.vector(as.numeric(results["totalSpendWithModel"]))
   totalSpend <- append(totalSpend,as.numeric(results["totalSpendWithoutModel"]))
   
+  #We might want to round the figures in our graphs for presentation
   if(round){
     totalEnticementSpend <- round(totalEnticementSpend,-3)
     costToReplace <- round(costToReplace,-3)
@@ -235,10 +234,12 @@ plotResults <- function(results, round=TRUE){
     
   }
   
+  #Create the dataframe for the plot
   df = melt(data.frame("Total Enticement Spend"=totalEnticementSpend, "Cost To Replace Lost Subscribers"=costToReplace, "Total Spend"=totalSpend, 
                        experiment=c("With Model","Without Model")),
             variable_name="Metric")
   
+  #Plot the data
   p <- ggplot(df, aes(experiment, value, fill=Metric)) + 
     geom_bar(position="dodge", stat='identity')+
     theme(axis.title.x=element_blank(),
