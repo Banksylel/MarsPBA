@@ -30,18 +30,18 @@ BASICNN_EPOCHS=350
 
 # ************************************************
 # Name      :   findOptimalNetworkParameter() :
-# Purpose   :   Find the optimal network parameter
+# Purpose   :   Find the optimal network parameter for a specific test
 #
-# INPUT     :   dataset     dataset
-#           :   testName    Name of test
-#           :   testSet     Number of test
+# INPUT     :   data frame            - dataset     - the train dataset
+#           :   string                - testName    - constant name of the parameter test
+#           :   vector                - testSet     - parameter values to test
 #
 # OUTPUT    :   None
 #
 # ************************************************
-
 findOptimalNetworkParameter <- function(dataset, testName, testSet, kfolds){
   
+  #Set parameters to defaults
   hiddenNodes <-  DEEP_HIDDEN
   stopping  <- DEEP_STOPPING   
   tolerance <- DEEP_TOLERANCE
@@ -53,6 +53,7 @@ findOptimalNetworkParameter <- function(dataset, testName, testSet, kfolds){
     print(paste("Test",i,"of",length(testSet)))
     print(paste("Testing", testName, "=", testSet[i]))
     
+    #Change the parameter we're testing for to the value in the test set
     if(testName == HIDDEN_TEST){
       hiddenNodes <- testSet[[i]]
     }else if(testName==STOPPING_TEST){
@@ -63,11 +64,13 @@ findOptimalNetworkParameter <- function(dataset, testName, testSet, kfolds){
       tolerance <- testSet[i]
     }
 
-    results <-  kfold(dataset, 5, deepNeural, hidden=hiddenNodes, stopping_rounds=stopping, activation=activation, stopping_tolerance=tolerance, plot=FALSE)
+    #Evaluate the results of the new parameter set
+    results <-  kfold(dataset, kfolds, deepNeural, hidden=hiddenNodes, stopping_rounds=stopping, activation=activation, stopping_tolerance=tolerance, plot=FALSE)
     
-    
+    #Include used parameters in the results record
     results <-  c(hidden=hiddenNodes, stopping_rounds=stopping, stopping_tolerance=tolerance , activation=activation, results)
     
+    #Create a new dataframe if one doesn't exist yet or add to the existing one
     if(i==1){
       allResults<-data.frame(ParamTest=unlist(results))
       
@@ -76,8 +79,11 @@ findOptimalNetworkParameter <- function(dataset, testName, testSet, kfolds){
     }
     
   }
+  
+  #Transpose the data frame to make the metrics fields
   allResults<-data.frame(t(allResults))
-
+  
+  #Print the resulting overview for the parameter tests
   print(formattable::formattable(allResults))
 
   
@@ -85,36 +91,17 @@ findOptimalNetworkParameter <- function(dataset, testName, testSet, kfolds){
 }
 
 # ************************************************
-# Name      :   nnPredict() :
-# Purpose   :   Calculates class predictions using a trained neural network model
-#
-# INPUT     :   object           - nnModel              - the trained neural network
-#           :   data frame       - test                 - the dataset to predict
-#
-# OUTPUT    :   vector double    - test_predicted       - the class predictions for the input dataset
-#
-# ************************************************
-nnPredict <- function(model, test){
-  test_expected<-test[,OUTPUT_FIELD]
-  test_h2o <- as.h2o(test, destination_frame = "testdata")
-  
-  pred <- h2o::h2o.predict(model, test_h2o)
-  
-  test_predicted<-as.vector(pred$p1)  #Returns the probabilities of class 1
-  return(test_predicted)
-}
-
-# ************************************************
 # Name      :   findAllOptimalNetworkParameters() :
-# Purpose   :   Wrapper for optimal NN parameter tests
+# Purpose   :   Run all of our neural network parameter tests
 #
 # INPUT     :   dataset     dataset
 #
 # OUTPUT    :   None
 #
 # ************************************************
-
 findAllOptimalNetworkParameters <- function(dataset, k){
+  
+  #The hidden nodes parameter needs a special format
   hiddenNodesTests <-  list()
   for(i in 1:5){
     hiddenNodesTests[[i]] <- c(i+2,i+2)
@@ -124,18 +111,18 @@ findAllOptimalNetworkParameters <- function(dataset, k){
   toleranceTests <- c(0.005, 0.08, 0.1, 0.12, 0.15, 0.18, 0.2)
   activationTests <- c("Tanh", "TanhWithDropout", "Rectifier", "RectifierWithDropout", "Maxout", "MaxoutWithDropout")
   
-  findOptimalNetworkParameter(dataset, HIDDEN_TEST, hiddenNodesTests, 5)
-  findOptimalNetworkParameter(dataset, ACTIVATION_TEST, activationTests, 5)
-  findOptimalNetworkParameter(dataset, STOPPING_TEST, stoppingTests, 5)
-  findOptimalNetworkParameter(dataset, TOLERANCE_TEST, toleranceTests, 5)
+  #Run all parameter tests
+  findOptimalNetworkParameter(dataset, HIDDEN_TEST, hiddenNodesTests, k)
+  findOptimalNetworkParameter(dataset, ACTIVATION_TEST, activationTests, k)
+  findOptimalNetworkParameter(dataset, STOPPING_TEST, stoppingTests, k)
+  findOptimalNetworkParameter(dataset, TOLERANCE_TEST, toleranceTests, k)
   
   
 }
 
 # ************************************************
 # deepNeural() :
-#
-# DEEP LEARNING EXAMPLE USING H2O library
+# Purpose   :   Evaluate the neural network model
 #
 # INPUT   :
 #         :   Data Frame     - rawDataset  - original dataset
@@ -191,20 +178,39 @@ deepNeural<-function(train,test,hidden=DEEP_HIDDEN, stopping_rounds=DEEP_STOPPIN
 } #endof deepNeural()
 
 
+# ************************************************
+# Name      :   nnPredict() :
+# Purpose   :   Calculates class predictions using a trained neural network model
+#
+# INPUT     :   object           - nnModel              - the trained neural network
+#           :   data frame       - test                 - the dataset to predict
+#
+# OUTPUT    :   vector double    - test_predicted       - the class predictions for the input dataset
+#
+# ************************************************
+nnPredict <- function(model, test){
+  test_expected<-test[,OUTPUT_FIELD]
+  test_h2o <- as.h2o(test, destination_frame = "testdata")
+  
+  pred <- h2o::h2o.predict(model, test_h2o)
+  
+  test_predicted<-as.vector(pred$p1)  #Returns the probabilities of class 1
+  return(test_predicted)
+}
 
 # ************************************************
 # Name      :   createNeuralNetworkModel() :
 # Purpose   :   Train NN model
 #
-# INPUT     :   dataset     Train dataset
+# INPUT     :   data frame        - dataset      - train dataset
+#           :   boolean           - print        - Output intermediate values?
+
 #
-# OUTPUT    :   Trained model
+# OUTPUT    :   object            - model        - Trained model
 #
 # ************************************************
-
 createNeuralNetworkModel <- function(dataset,print=FALSE){
   N_DEEP_Initialise()
-  
   model <-  N_DEEP_TrainClassifier(train=dataset,
                                    fieldNameOutput=OUTPUT_FIELD,
                                    hidden=DEEP_HIDDEN,
@@ -220,14 +226,14 @@ createNeuralNetworkModel <- function(dataset,print=FALSE){
 
 # ************************************************
 # Name      :   evaluateNeuralNetworkModel() :
-# Purpose   :   Evaluate NN mode
+# Purpose   :   Evaluate NN model
 #
-# INPUT     :   dataset      dataset
+# INPUT     :   data frame                          - dataset           - the train/validation dataset
+#           :   boolean                             - printflag         - output intermediate values to the console?
 #
 # OUTPUT    :   Model performance measures
 #
 # ************************************************
-
 evaluateNeuralNetworkModel <- function(dataset, printflag=FALSE){
   N_DEEP_Initialise()
   #keeps <-  c("TotalCharges", "MonthlyCharges", "tenure", "Contract_Monthtomonth", "InternetService_Fiber", "InternetService_TechSupport", "Contract_Twoyear", "PaymentMethod_Automatic", "InternetService_NoInternetService", "InternetService_TechSupport","InternetService_OnlineSecurity","Churn")
@@ -238,17 +244,8 @@ evaluateNeuralNetworkModel <- function(dataset, printflag=FALSE){
   #optimals <-  findAllOptimalNetworkParameters(dataset,5)
   
   
-  results <-  kfold(dataset, 5, deepNeural, plot=printflag)
+  results <-  kfold(dataset, KFOLDS, deepNeural, plot=printflag)
   return(results)
 
 
 }
-
-source("functions/mars/data_pre_processing_pipeline.R")
-source("functions/mars/data_pre_processing_functions.R")
-source("functions/nick/4labfunctions.R")
-source("functions/nick/lab4DataPrepNew.R")
-source("functions/mars/utility_functions.R")
-
-
-print("Sourcing neural_network_functions.R ")

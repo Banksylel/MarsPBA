@@ -16,25 +16,12 @@
 #   1.03      15/11/2020    Chris Endacott + Brian Nyathi + Adlan Elias    Implemented parameter tuning
 # ************************************************
 
-
-
-
-
-MYLIBRARIES<-c("outliers",
-               "corrplot",
-               "MASS",
-               "formattable",
-               "stats",
-               "PerformanceAnalytics")
-
-# User defined functions are next
-
 FOREST_SIZE <- 800                 # Number of trees in the forest
-MAX_NODES <-  20
-MTRY <- 5
+MAX_NODES <-  20                   # Max nodes each tree can have
+MTRY <- 5                          # Number of variables availible at each split
 
 
-
+#Names of tests as constants to reduce potential input errors
 FOREST_SIZE_TEST = "Forest Size"
 MAX_NODES_TEST = "Max Nodes"
 MTRY_TEST = "MTRY"
@@ -44,18 +31,19 @@ MTRY_TEST = "MTRY"
 
 # ************************************************
 # Name      :   testForestParameter() :
-# Purpose   :   Run tests to determine optimal forest size
+# Purpose   :   Run tests to determine an optimal parameter
 #
-# INPUT     :   dataset     dataset
-#           :   testName    Name of test
-#           :   testSet     Number of test
+# INPUT     :   data frame      - dataset       - dataset to evaluate
+#           :   string          - testName      - Name of test
+#           :   vector          - testSet       - Vector containing variants of the parameter to be tested
+#           :   integer         - kfolds        - the number of folds to evaluate with
 #
 # OUTPUT    :   None
 #
 # ************************************************
-
 testForestParameter <- function(dataset, testName, testSet, kfolds){
   
+  #Set parameters to defaults
   forestSize <- FOREST_SIZE
   maxNodes <- MAX_NODES
   mtry <- MTRY
@@ -66,6 +54,7 @@ testForestParameter <- function(dataset, testName, testSet, kfolds){
     print(paste("Test",i,"of",length(testSet)))
     print(paste("Testing", testName, "=", testSet[i]))
     
+    #Change the parameter we're testing for to the value in the test set
     if(testName == FOREST_SIZE_TEST){
       forestSize <- testSet[[i]]
     }else if(testName==MAX_NODES_TEST){
@@ -74,11 +63,13 @@ testForestParameter <- function(dataset, testName, testSet, kfolds){
       mtry <- testSet[i]
     }
     
-    results <-  kfold(dataset, 5, randomForest, forestSize=forestSize, maxNodes=maxNodes, mtry=mtry, plot=FALSE)
+    #Evaluate the results of the new parameter set
+    results <-  kfold(dataset, kfolds, randomForest, forestSize=forestSize, maxNodes=maxNodes, mtry=mtry, plot=FALSE)
     
-    
+    #Include used parameters in the results record
     results <-  c(forestSize=forestSize, maxNodes=maxNodes, mtry=mtry ,results)
     
+    #Create a new dataframe if one doesn't exist yet or add to the existing one
     if(i==1){
       allResults<-data.frame(ParamTest=unlist(results))
       
@@ -87,34 +78,35 @@ testForestParameter <- function(dataset, testName, testSet, kfolds){
     }
     
   }
+  #Transpose the data frame to make the metrics fields
   allResults<-data.frame(t(allResults))
   
+  #Print the resulting overview for the parameter tests
   print(formattable::formattable(allResults))
-  
-  
   
 }
 
-
 # ************************************************
 # Name      :   testAllForestParameters() :
-# Purpose   :   Wrapper for optimal forest size tests
+# Purpose   :   Runs all of our parameter tests that we wish to perform
 #
-# INPUT     :   dataset     dataset
+# INPUT     :   data frame      - dataset       - dataset to evaluate
+#           :   integer         - k             - the number of folds to evaluate with
 #
 # OUTPUT    :   None
 #
 # ************************************************
-
 testAllForestParameters <- function(dataset, k){
 
+  #Parameter sets to test for
   forestSizeTests <-  c(250, 300, 350, 400, 450, 500, 550, 600, 800, 1000, 2000, 3000, 4000)
   maxNodesTests <- c(5: 25, NULL)
   mtryTests <- c(1:10)
   
-  #testForestParameter(dataset, MAX_NODES_TEST, maxNodesTests, 5)
-  #testForestParameter(dataset, FOREST_SIZE_TEST, forestSizeTests, 5)
-  testForestParameter(dataset, MTRY_TEST, mtryTests, 5)
+  #Run each test
+  testForestParameter(dataset, MAX_NODES_TEST, maxNodesTests, k)
+  testForestParameter(dataset, FOREST_SIZE_TEST, forestSizeTests, k)
+  testForestParameter(dataset, MTRY_TEST, mtryTests, k)
 }
 
 
@@ -122,14 +114,15 @@ testAllForestParameters <- function(dataset, k){
 # Name      :   getTreeClassifications() :
 # Purpose   :   Get forest measures
 #
-# INPUT     :   myTree                    Trained forest model
-#           :   testDataset               Test dataset
-#           :   title, classLabel,plot    Graphing parameters
+# INPUT     :   object                  - myTree                    - Trained forest model
+#           :   data frame              - testDataset               - Test dataset
+#           :   string                  - title                     - Title for plots
+#           :   integer                 - classLabel                - Column id with class label
+#           :   boolean                 - plot                      - Output intermediate steps?
 #
-# OUTPUT    :   None
+# OUTPUT    :   list                    - measures                  - List of measures
 #
 # ************************************************
-
 getTreeClassifications<-function(myTree,
                                  testDataset,
                                  title,
@@ -140,10 +133,6 @@ getTreeClassifications<-function(myTree,
   
   #test data: dataframe with with just input fields
   test_inputs<-testDataset[-positionClassOutput]
-  
-  # Generate class membership probabilities
-  # Column 1 is for class 0 (bad loan) and column 2 is for class 1 (good loan)
-  
   testPredictedClassProbs<-predict(myTree,test_inputs, type="prob")
   
   # Get the column index with the class label
@@ -238,7 +227,8 @@ randomForest<-function(train,test,plot=TRUE, forestSize=FOREST_SIZE, maxNodes=MA
 # Name      :   createRandomForestModel() :
 # Purpose   :   Create random forest model
 #
-# INPUT     :   dataset        Train dataset
+# INPUT     :   data frame       - dataset     - Train dataset
+#           :   boolean          - print       - Output intermediate values?
 #
 # OUTPUT    :   Trained random forest model
 #
@@ -297,37 +287,25 @@ rfPredict <- function(model, test){
 }
 
 # ************************************************
-# main() :
-# main entry point to execute analytics
+# Name      :   evaluateRandomForestModel() :
+# Purpose   :   Evaluate the random forest model with a dataset
 #
-# INPUT       :   None
+# INPUT     :   data frame           - dataset              - the dataset
 #
-# OUTPUT      :   None
+# OUTPUT    :   list                 - results              - the evaluation metrics
 #
-# Keeps all objects as local to this function
 # ************************************************
 evaluateRandomForestModel<-function(dataset){
   
+  #Keep these fields only
   keeps <-  c("TotalCharges", "MonthlyCharges", "tenure", "Contract_Monthtomonth", "InternetService_Fiber", "InternetService_TechSupport", "Contract_Twoyear", "Churn")
-  
   dataset <-  keepFields(dataset, keeps)
 
+  #Train using k fold cross val
   results <-  kfold(dataset, 5, randomForest, plot=FALSE)
 
   return(results)
   
-} #endof main()
+} 
 
-
-
-# Loads the libraries
-library(pacman)
-pacman::p_load(char=MYLIBRARIES,install=TRUE,character.only=TRUE)
-
-#Load additional R script files provide for this lab
-source("functions/mars/data_pre_processing_pipeline.R")
-source("functions/mars/data_pre_processing_functions.R")
-source("functions/nick/4labfunctions.R")
-source("functions/nick/lab4DataPrepNew.R")
-source("functions/mars/utility_functions.R")
 

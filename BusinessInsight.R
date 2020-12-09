@@ -44,16 +44,15 @@ DATASET_FILENAME  <- "telco-data.csv"          # Name of input dataset file
 
 KFOLDS           <- 5 # Number of folds to use in k-Fold validation
 
-CUSTOMER_TENURE_FIELD <- 'tenure'
-MONTHLY_CHARGE_FIELD <- 'MonthlyCharges'
+CUSTOMER_TENURE_FIELD <- 'tenure'            #Tenure field in dataset
+MONTHLY_CHARGE_FIELD <- 'MonthlyCharges'     #Charge field by month
 
 
-#In dollars
-COST_TO_RETAIN <- 750
+#Business assumptions
+COST_TO_RETAIN <- 750                   #Cost to retain customers in dollars 
+ENTICEMENT_PERCENTAGE <- 0.1            #Enticement percentage to offer (as decimal)
+MINIMUM_ENTICEMENT_THRESHOLD <-  25     #Minimum monthly spend to offer enticement to
 
-ENTICEMENT_PERCENTAGE <- 0.1
-
-MINIMUM_ENTICEMENT_THRESHOLD <-  25
 
 # ************************************************
 # Name      :   main() :
@@ -69,17 +68,30 @@ main<-function(){
   scaledDataset <-  mars_GetPreprocessedDataset(scaleflag=TRUE, printflag=FALSE)
   unscaledDataset <-  mars_GetPreprocessedDataset(scaleflag=FALSE, printflag=FALSE)
   
+  #Check that tenure field exists in the loaded data
+  if( !(CUSTOMER_TENURE_FIELD %in% colnames(scaledDataset)) || !(CUSTOMER_TENURE_FIELD %in% colnames(unscaledDataset)))
+  {
+    stop("The loaded dataset does not contain the specified tenure field, have you specified this correctly?");
+  }
+  
+  #Check that the monthly charge field exists in the loaded data
+  if( !(MONTHLY_CHARGE_FIELD %in% colnames(scaledDataset)) || !(MONTHLY_CHARGE_FIELD %in% colnames(unscaledDataset)))
+  {
+    stop("The loaded dataset does not contain the specified monthly charges field, have you specified this correctly?");
+  }
+  
+  #Check that all assumptions are defined
+  if(is.null(COST_TO_RETAIN) || is.null(ENTICEMENT_PERCENTAGE) ||is.null(MINIMUM_ENTICEMENT_THRESHOLD)){
+    stop("One or more assumptions have not been set");
+  }
+  
+  
   #Evalutate the ensemble model
   evaluateEnsembleModelROI(scaledDataset, unscaledDataset, COST_TO_RETAIN,ENTICEMENT_PERCENTAGE,MINIMUM_ENTICEMENT_THRESHOLD)
   
   
 } #endof main()
 
-
-
-
-# ************************************************
-# This is where R starts execution
 
 
 # Loads the libraries

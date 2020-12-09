@@ -19,15 +19,14 @@
 # Name      :   getLRClassifications() :
 # Purpose   :   Determine "measures" when using optimal threshold
 #
-# INPUT     :   glm object    trainedModel
-#           :   data frame    testDataset
-#           :   Text          Optional title
-#           :   Boolean       Enable plots
+# INPUT     :   object                   - trainedModel        - the trained model
+#           :   data frame               - testDataset         - the test dataset
+#           :   string                   - title               - Optional title      
+#           :   Boolean                  - plot                - Enable plots
 #
-# OUTPUT    :   measures - model performance metrics
+# OUTPUT    :   list                     - measures            - model performance metrics
 #
 # ************************************************
-
 getLRClassifications<-function(trainedModel,
                                  testDataset,
                                  title="",
@@ -58,14 +57,14 @@ getLRClassifications<-function(trainedModel,
 # Name      :   logisticRegression() :
 # Purpose   :   Train logistic regression model
 #
-# INPUT     :   data frame    training_data
-#           :   data frame    testing_data
-#           :   Boolean       plot - Enable plots
+# INPUT     :   data frame        - training_data        - the train data
+#           :   data frame        - testing_data         - the test data
+#           :   string            - formular             - the formula for the logistic regression
+#           :   Boolean           - plot                 - Enable plots
 #
-# OUTPUT    :   measures      Model performance metrics
+# OUTPUT    :   list              - measures             - Model performance metrics
 #
 # ************************************************
-
 logisticRegression <- function(training_data,testing_data, formular=formular, plot=TRUE, ...){
 
   # Train model with reduced feature list
@@ -91,9 +90,9 @@ logisticRegression <- function(training_data,testing_data, formular=formular, pl
 #           :   determine feature importance.
 #               Remove non-contributing features and generate model formula.
 #
-# INPUT     :   data frame    dataset
+# INPUT     :   data frame                                   - dataset        - the dataset
 #
-# OUTPUT    :   Model formula with reduced feature set.
+# OUTPUT    :   string                                       - formular       - Model formula with reduced feature set.
 #
 # ************************************************
 reduceFeatures<-function(dataset) {
@@ -119,10 +118,10 @@ reduceFeatures<-function(dataset) {
 # Name      :   retention() :
 # Purpose   :   Cost of retention plot - discount vs churn
 #
-# INPUT     :   glm object    trainedModel
-#           :   threshold     Determined by k-fold validation
-#           :   dataset       Pre-processed dataset
-#           :   title         Title for plot       
+# INPUT     :   object        - trainedModel       - the trained model
+#           :   double        - threshold          - the classification threshold
+#           :   data frame    - dataset            - the dataset
+#           :   string        - title              - Title for plot       
 #
 # OUTPUT    :   None
 #
@@ -171,7 +170,7 @@ retention<-function(trainedModel, threshold, dataset, title){
 # Name      :   lrPredict() :
 # Purpose   :   Calculates class predictions using a logistic regression model
 #
-# INPUT     :   object           - lrModel              - the trained logistic regression model
+# INPUT     :   object           - model                - the trained logistic regression model
 #           :   data frame       - test                 - the dataset to predict
 #
 # OUTPUT    :   vector double    - test_predictedProbs  - the class predictions for the input dataset
@@ -193,12 +192,12 @@ lrPredict <- function(model, test){
 # Name      :   createLogisticRegressionModel() :
 # Purpose   :   Train logistic regression model
 #
-# INPUT     :   dataset     Train dataset
-#
+# INPUT     :   data frame      - dataset      - Train dataset
+#           :   boolean         - print        - output intermediate values?
+# 
 # OUTPUT    :   Trained model
 #
 # ************************************************
-
 createLogisticRegressionModel <- function(dataset, print=FALSE){
   # Remove redundant features from model
   formular<-reduceFeatures(dataset)
@@ -213,9 +212,9 @@ createLogisticRegressionModel <- function(dataset, print=FALSE){
 # Name      :   evaluateLogisticRegressionModel() :
 # Purpose   :   Evaluate logistic regression model
 #
-# INPUT     :   dataset      Train dataset
+# INPUT     :   data frame                    - dataset      - Train dataset
 #
-# OUTPUT    :   Model performance measures
+# OUTPUT    :   list                          - results      - evaluation metrics
 #
 # ************************************************
 
@@ -255,31 +254,9 @@ evaluateLogisticRegressionModel<-function(dataset){
   
 
   return(results)
-} #endof main()
+} 
 
 
-
-
-# ************************************************
-# This is where R starts execution
-
-# clears the console area
-#cat("\014")
-
-# Loads the libraries
-library(pacman)
-pacman::p_load(char=MYLIBRARIES,install=TRUE,character.only=TRUE)
-
-#This [optionally] sets working directory
-#setwd("")
-
-#Load additional R script files 
-source("functions/mars/data_pre_processing_pipeline.R")
-source("functions/mars/data_pre_processing_functions.R")
-source("functions/nick/4labfunctions.R")
-source("functions/nick/lab4DataPrepNew.R")
-source("functions/nick/lab3DataPrep.R")
-source("functions/mars/utility_functions.R")
 
 
 

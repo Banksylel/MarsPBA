@@ -21,8 +21,8 @@
 # Name      :   saveModelToFile() :
 # Purpose   :   Saved trained models to a file.
 #
-# INPUT     :   modelName     Filename to write model to
-#           :   model         Trained model object
+# INPUT     :   string            - modelName     - name of model to output to file
+#           :   model             - Trained model object
 #
 # OUTPUT    :   None
 #
@@ -36,10 +36,10 @@ saveModelToFile <- function(modelName, model){
 # Name      :   loadModelFromFile() :
 # Purpose   :   Load trained model from a file
 #
-# INPUT     :   modelName     File containing trained model.
+# INPUT     :   string                 - modelName      - File name containing trained model.
 
 #
-# OUTPUT    :   None
+# OUTPUT    :   object                 - model          - trained model
 #
 # ************************************************
 loadModelFromFile <-function(modelName){
@@ -52,13 +52,12 @@ loadModelFromFile <-function(modelName){
 # Name      :   keepFields() :
 # Purpose   :   Strip columns other than fieldNames from dataset
 #
-# INPUT     :   dataset     dataset
-#               fieldNames  Fields to retain
+# INPUT     :   data frame                    - dataset         - the data frame
+#               vector                        - fieldNames      - fields to retain
 #
-# OUTPUT    :   Input dataset with only fieldName columns retained
+# OUTPUT    :   data frame                    - sub             - dataset with only fieldName columns retained
 #
 # ************************************************
-
 keepFields <- function(dataset,fieldNames){
   sub <- dataset[ , (names(dataset) %in% fieldNames)]
   return(sub)
@@ -69,10 +68,10 @@ keepFields <- function(dataset,fieldNames){
 # Name      :   dropFields() :
 # Purpose   :   Strip fieldName columns from dataset
 #
-# INPUT     :   dataset     dataset
-#               fieldNames  Fields to drop
+# INPUT     :   data frame                    - dataset         - the data frame
+#               vector                        - fieldNames      - fields to drop
 #
-# OUTPUT    :   Input dataset minus fieldName columns
+# OUTPUT    :   data frame                    - sub             - dataset with fieldNames dropped
 #
 # ************************************************
 dropFields <- function(dataset,fieldNames){
@@ -83,41 +82,48 @@ dropFields <- function(dataset,fieldNames){
 
 # ************************************************
 # Name      :   kfold() :
-# Purpose   :   Wrapper for k-fold validation
+# Purpose   :   Generic k-fold implementation, supports passing through parameters
 #
-# INPUT     :   dataset     dataset
-#               k           Number of folds
-#               FUN         Model function
+# INPUT     :   data frame                             - dataset          - the dataset
+#               integer                                - k                - number of folds
+#               function                               - FUN              - model evaluation function
 #
-# OUTPUT    :   Model performance measure averages
+# OUTPUT    :   list                                   - avgs             - model performance measure averages
 #
 # ************************************************
-
 kfold <-  function(dataset, k, FUN,...){
   print(paste("Running K-Fold cross validation with", k, "folds"))
 
+  #Apply folds to records
   dataset <- PREPROCESSING_stratDataset(dataset, k)
+  
+  #Save the randomisation order
   randomisationOrder <- order(runif(nrow(dataset)))
   
+  #Shuffle the dataset
   dataset <- dataset[randomisationOrder,]
 
-  
-  
+  #Create the aggregate results dataframe
   results <-  data.frame()
   
+  #Iterate over each fold from 1 to k
   for(i in 1:k){
     print(paste("Evaluating fold", i, "/", k))
     train <-  subset(dataset, (dataset$foldId!=i))
     test <-  dataset[dataset$foldId == i,]
     
+    #We need to drop the fold id as we don't want our models training on this
     train <-  dropFields(train, c("foldId"))
     test <-  dropFields(test, c("foldId"))
     
+    #Evaluate the model using the model function, train, test, and any other parameters the function might need
     result <-  FUN(train,test, ...)
 
+    #Add the results to the results list
     results <-rbind(results, data.frame(result))
   }
   
+  #Average the results, rounding the values to format nicely
   avgs <-  colMeans(results)
   avgs[1:4] <-  as.integer(round(avgs[1:4]))
   avgs[5:length(avgs)] <-  round(avgs[5:length(avgs)], digits=2)
@@ -125,4 +131,3 @@ kfold <-  function(dataset, k, FUN,...){
   return(avgs)
 }
 
-print("Sourcing utility_functions.R ")
