@@ -5,14 +5,15 @@
 #   LOGISTIC REGRESSION FUNCTIONS
 #
 #   
-#   DATE:     11 NOVEMBER 2020
-#   VERSION:  V1.0
+#   DATE:     16 NOVEMBER 2020
+#   VERSION:  V1.02
 #   AUTHOR:   MARS Team
 #
 #   UPDATE
 #   1.00      11/11/2020    Chris Jennings    Initial Version
 #   1.01      15/11/2020    Chris Jennings    Adopt k-folds
 #   1.02      16/11/2020    Chris Jennings    Fixed bugs
+# ************************************************
 
 
 # Define and then load the libraries used in this project
@@ -131,7 +132,7 @@ reduceFeatures<-function(dataset) {
   features<-data.frame(gsub("[[:blank:]]+", "", row.names(importance)), importance$Overall)
   colnames(features)<-c("Feature", "Overall")
   features<-features[order(-importance$Overall),]
-  
+
   # Reconstruct model formula
   formular<-paste(OUTPUT_FIELD, "~", paste(features$Feature, collapse = "+"))
   

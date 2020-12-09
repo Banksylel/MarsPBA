@@ -5,12 +5,17 @@
 #   UTILITY FUNCTIONS
 #
 #   
-#   DATE:     11 NOVEMBER 2020
-#   VERSION:  V1.0
+#   DATE:     28 NOVEMBER 2020
+#   VERSION:  V1.04
 #   AUTHOR:   MARS Team
 #
 #   UPDATE
 #   1.00      11/11/2020    Chris Jennings    Initial Version
+#   1.01      13/11/2020    Chris Endacott    Created generalisable k-fold
+#   1.02      14/11/2020    Chris Endacott    Added function for dropping fields from dataset
+#   1.03      17/11/2020    Chris Endacott    Implemented passing params through k-fold
+#   1.04      28/11/2020    Chris Endacott    Added model saving
+# ************************************************
 
 
 saveModelToFile <- function(modelName, model){

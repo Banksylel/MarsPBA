@@ -1,22 +1,21 @@
 # *************************************************************
 #   PRACTICAL BUSINESS ANALYTICS
 #   MARS GROUP 
-#   DATA PRE-PROCESSING PIPELINE
 #
 #   
-#   DATE:     11 NOVEMBER 2020
-#   VERSION:  V1.0
+#   DATE:     06 DECEMBER 2020
+#   VERSION:  V1.04
 #   AUTHOR:   MARS Team
 #
 #   UPDATE
 #   1.00      11/11/2020    Chris Endacott    Initial Version
-#   1.10      15/11/2020    Brian Nyathi      + Generalisations
+#   1.01      15/11/2020    Brian Nyathi      + Generalisations
+#   1.02      18/11/2020    Chris Endacott    Bug fixes
+#   1.03      19/11/2020    Chris Endacott    More visualisations
+#   1.04      06/12/2020    Chris Endacott    Changed colour defaults
 # *************************************************************
 
-COLOUR_PALLETE <- c("#8accff", "#ff8792", "#adffbf", "#ffff9e", "#ffcf99","#ff7de5")
 
-
-KFOLDS           <- 5
 
 # Define and then load the libraries used in this project
 # Library from CRAN     Version
@@ -245,18 +244,9 @@ createKmeansModel<-function(dataset){
   
 } #endof main()
 
-# If library not already on your computer this will download and
-# install the library. Each library is activated.
-library(pacman)
-pacman::p_load(char=MYLIBRARIES,install=TRUE,character.only=TRUE)
-
 
 #Source functions
 source("functions/nick/lab3dataPrep.R")    # From Prof Nick's lab
 source("functions/nick/lab2functions.R")   # From Prof Nick's lab
 source("functions/mars/data_pre_processing_functions.R")
 source("functions/mars/data_pre_processing_pipeline.R")
-
-fullDataset <-  mars_GetPreprocessedDataset(scaleflag=TRUE, printflag=FALSE, balanceflag=TRUE)
-##Run clustering evaluation
-kMeansModel <-createKmeansModel(fullDataset)

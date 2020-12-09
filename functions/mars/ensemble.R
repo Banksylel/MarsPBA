@@ -2,17 +2,16 @@
 #   PRACTICAL BUSINESS ANALYTICS
 #   MARS GROUP 
 #
-#   LOGISTIC REGRESSION FUNCTIONS
-#
 #   
-#   DATE:     11 NOVEMBER 2020
-#   VERSION:  V1.0
+#   DATE:     04 DECEMBER 2020
+#   VERSION:  V1.02
 #   AUTHOR:   MARS Team
 #
 #   UPDATE
-#   1.00      11/11/2020    Chris Jennings    Initial Version
-#   1.01      15/11/2020    Chris Jennings    Adopt k-folds
-#   1.02      16/11/2020    Chris Jennings    Fixed bugs
+#   1.00      17/11/2020    Chris Endacott    Initial Version
+#   1.01      18/11/2020    Chris Endacott    Bug fixes
+#   1.02      4/12/2020    Chris Endacott    Implemented ROI calculation workflow with ensemble
+# ************************************************
 
 
 # Define and then load the libraries used in this project
@@ -65,14 +64,11 @@ ensemble <- function(train,test,...){
   
   ensembleModel <- createEnsembleModel(train)
   
-  ensemblePredictions <-  ensemblePredictMean(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel, test)
-  #ensemblePredictions <-  ensemblePredictVote(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel, test)
+  #ensemblePredictions <-  ensemblePredictMean(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel, test)
+  ensemblePredictions <-  ensemblePredictVote(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel, test)
   
   test_expected <- test[,OUTPUT_FIELD]
-  results<-NcalcConfusion(expectedClass=test_expected,
-                          predictedClass=ensemblePredictions)
-  results$threshold <- NA
-  results$AUC<-auroc(score=ensemblePredictions,bool=test_expected) # Estimate the AUC
+  results<-NdetermineThreshold(ensemblePredictions, test_expected, plot=FALSE, title="Ensemble results")
   
   return(results)
 }
@@ -89,8 +85,8 @@ ensembleROI <- function(train,test,threshold, monthlyCharges, acquisitionCost, e
   
   ensembleModel <- createEnsembleModel(train)
   
-  ensemblePredictions <-  ensemblePredictMean(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel, test)
-  #ensemblePredictions <-  ensemblePredictVote(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel, test)
+  #ensemblePredictions <-  ensemblePredictMean(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel, test)
+  ensemblePredictions <-  ensemblePredictVote(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel, test)
   
   
   
@@ -167,9 +163,7 @@ ensemblePredictMean <- function(lrModel, rfModel, nnModel, test){
     
   }
   
-  ensembleThreshold <- NdetermineThreshold(ensemblePredictions, test_expected)$threshold
-  ensemblePredictions <-ifelse(ensemblePredictions<ensembleThreshold,0,1)
-  
+
   return(ensemblePredictions)
 }
 

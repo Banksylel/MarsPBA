@@ -5,14 +5,15 @@
 #   LOGISTIC REGRESSION FUNCTIONS
 #
 #   
-#   DATE:     11 NOVEMBER 2020
-#   VERSION:  V1.0
+#   DATE:     04 DECEMBER 2020
+#   VERSION:  V1.02
 #   AUTHOR:   MARS Team
 #
 #   UPDATE
-#   1.00      11/11/2020    Chris Jennings    Initial Version
-#   1.01      15/11/2020    Chris Jennings    Adopt k-folds
-#   1.02      16/11/2020    Chris Jennings    Fixed bugs
+#   1.00      03/12/2020    Chris Endacott    Initial Version
+#   1.01      04/12/2020    Chris Endacott    Added visualisation
+#   1.02      04/12/2020    Chris Endacott    Fixed ROI calc
+# ************************************************
 
 
 
@@ -157,7 +158,7 @@ calculateModelROI<-function(acquisitionCost, enticementPercent,minEnticementThre
 
   # ##Train an ensemble model on the full train set and output final test measures
   ensembleModel <- createEnsembleModel(scaledTrain)
-  ensemblePredictions <- ensemblePredictMean(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel,test)
+  ensemblePredictions <- ensemblePredictVote(ensembleModel$lrModel, ensembleModel$rfModel, ensembleModel$nnModel,test)
   ensembleTestResults<-NdetermineThreshold(ensemblePredictions,test_expected,plot=FALSE)
   NprintMeasures(ensembleTestResults, "Ensemble model final test evaluation")
 
@@ -168,10 +169,10 @@ calculateModelROI<-function(acquisitionCost, enticementPercent,minEnticementThre
   plotResults(results, round=TRUE)
   
   
-  #results <-  kfold(scaledTrain, 5, ensembleROI, monthlyCharges=unscaledTrain[,'MonthlyCharges'], acquisitionCost=acquisitionCost, enticementPercent = enticementPercent,minEnticementThreshold=minEnticementThreshold)
-  #print(results)
-  #NprintMeasures(results, "Ensemble model validation results")
-  #plotResults(results)
+  results <-  kfold(scaledTrain, 5, ensembleROI, monthlyCharges=unscaledTrain[,'MonthlyCharges'], acquisitionCost=acquisitionCost, enticementPercent = enticementPercent,minEnticementThreshold=minEnticementThreshold)
+  print(results)
+  NprintMeasures(results, "Ensemble model validation results")
+  plotResults(results, round=TRUE)
   
 
   

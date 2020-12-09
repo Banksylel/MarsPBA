@@ -1,16 +1,11 @@
 # ************************************************
 #  PRACTICAL BUSINESS ANALYTICS
 #  Mars Group
-# 14 NOVEMBER 2020
+# 15 NOVEMBER 2020
 # UPDATE
 # 1.00      14/11/2020    Brian   Initial Version
 # 1.01      15/11/2020    Ryan    tweaks, and tidying
 # ************************************************
-# R Script For Data Visualization
-#  clears all objects in "global environment", console and plots tab
-
-# ************************************************
-# Global Environment variables
 
 DATASET_FILENAME  <- "telco-data.csv"          # Name of input dataset file
 
