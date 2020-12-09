@@ -7,47 +7,19 @@
 # 1.01      15/11/2020    Ryan    tweaks, and tidying
 # ************************************************
 
-DATASET_FILENAME  <- "telco-data.csv"          # Name of input dataset file
-
-
-# Define and then load the libraries used in this project
-# Library from CRAN     Version
-# pacman	               0.5.1
-# outliers	             0.14
-# corrplot	             0.84
-# MASS	                 7.3.53
-# formattable 	         0.2.0.1
-# stats                  4.0.3
-# PerformanceAnalytics   2.0.4
-
-
-#install.packages("tidyverse")
-library(ggplot2)
-#install.packages("dplyr")
-library(dplyr)
-library(tidyverse) 
-library(MASS)
-library(car)
-library(e1071)
-library(caret)
-library(cowplot)
-library(caTools)
-library(pROC)
-library(ggcorrplot)
-# User defined functions are next
 
 # ************************************************
-# main() :
-# main entry point to execute analytics
+# Name      :   visualiseDataset() :
+# Purpose   :   Perform visualisation on the input dataset
 #
-# INPUT       :   None
-#
-# OUTPUT      :   None
-#
-# Keeps all objects as local to this function
-# ************************************************
+# INPUT     :   string      - filename                    - the name of the dataset file
 
+#
+# OUTPUT    :   none
+#
+# ************************************************
 visualiseDataset <- function(filename){
+  #Add percentage labels to the churn plot
   dataset <- read.csv(filename)
   churn_data <- dataset%>%
     count(Churn) %>%
@@ -140,5 +112,3 @@ visualiseDataset <- function(filename){
   #**********************************************************
 }
 
-
-visualiseDataset(DATASET_FILENAME)
