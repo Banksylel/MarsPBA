@@ -27,6 +27,7 @@
 rm(list=ls())
 
 
+
 MYLIBRARIES<-c("outliers",
                "corrplot",
                "MASS",
@@ -36,7 +37,16 @@ MYLIBRARIES<-c("outliers",
                "stringr",
                "PerformanceAnalytics",
                "ggplot2",
-               "reshape")
+               "reshape",
+               "dplyr",
+               "h2o",
+               "tidyverse",
+               "car",
+               "e1071",
+               "cowplot",
+               "caTools",
+               "pROC",
+               "ggcorrplot")
 
 
 
