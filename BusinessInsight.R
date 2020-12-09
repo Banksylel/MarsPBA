@@ -45,7 +45,7 @@ COST_TO_RETAIN <- 750
 
 # ************************************************
 # Name      :   main() :
-# Purpose   :   Main entry point for logistic regression script
+# Purpose   :   Main entry point for business insight
 #
 # INPUT     :   None
 #
@@ -63,12 +63,9 @@ main<-function(){
   print("Print ensemble measures")
   
   measures <-  evaluateEnsembleModel(preProcessedDataSet)
-  print("cu")
   NprintMeasures(measures, "Ensemble model results")
-  print("fuck")
   ##Load the ensemble model trained on all data
   ensembleModel <- loadModelFromFile("EnsembleModel")
-  
   
   numChurned <- nrow(fullDataset[which(fullDataset$Churn=="Yes"),])
   churnRate <-  numChurned/nrow(fullDataset)
