@@ -15,29 +15,83 @@
 #   1.02      14/11/2020    Chris Endacott    Added function for dropping fields from dataset
 #   1.03      17/11/2020    Chris Endacott    Implemented passing params through k-fold
 #   1.04      28/11/2020    Chris Endacott    Added model saving
+
+
 # ************************************************
-
-
+# Name      :   saveModelToFile() :
+# Purpose   :   Saved trained models to a file.
+#
+# INPUT     :   modelName     Filename to write model to
+#           :   model         Trained model object
+#
+# OUTPUT    :   None
+#
+# ************************************************
 saveModelToFile <- function(modelName, model){
   saveRDS(model, paste("Models/",modelName,".rda", sep=""))
 }
 
+
+# ************************************************
+# Name      :   loadModelFromFile() :
+# Purpose   :   Load trained model from a file
+#
+# INPUT     :   modelName     File containing trained model.
+
+#
+# OUTPUT    :   None
+#
+# ************************************************
 loadModelFromFile <-function(modelName){
   model <- readRDS(paste("Models/",modelName,".rda",sep=""))
   return(model)
 }
 
 
+# ************************************************
+# Name      :   keepFields() :
+# Purpose   :   Strip columns other than fieldNames from dataset
+#
+# INPUT     :   dataset     dataset
+#               fieldNames  Fields to retain
+#
+# OUTPUT    :   Input dataset with only fieldName columns retained
+#
+# ************************************************
+
 keepFields <- function(dataset,fieldNames){
   sub <- dataset[ , (names(dataset) %in% fieldNames)]
   return(sub)
 }
 
+
+# ************************************************
+# Name      :   dropFields() :
+# Purpose   :   Strip fieldName columns from dataset
+#
+# INPUT     :   dataset     dataset
+#               fieldNames  Fields to drop
+#
+# OUTPUT    :   Input dataset minus fieldName columns
+#
+# ************************************************
 dropFields <- function(dataset,fieldNames){
   sub <- dataset[ , !(names(dataset) %in% fieldNames)]
   return(sub)
 }
 
+
+# ************************************************
+# Name      :   kfold() :
+# Purpose   :   Wrapper for k-fold validation
+#
+# INPUT     :   dataset     dataset
+#               k           Number of folds
+#               FUN         Model function
+#
+# OUTPUT    :   Model performance measure averages
+#
+# ************************************************
 
 kfold <-  function(dataset, k, FUN,...){
   print(paste("Running K-Fold cross validation with", k, "folds"))
